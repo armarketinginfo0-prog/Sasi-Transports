@@ -1,47 +1,47 @@
 // middleware.js
-import { NextResponse } from 'next/server';
-
-// Basic Auth middleware for Vercel Edge
-export function middleware(req) {
+// Vercel Edge middleware (Web API) — Basic Auth
+export function middleware(request) {
   const AUTH_USER = process.env.BASIC_AUTH_USER || 'admin';
   const AUTH_PASS = process.env.BASIC_AUTH_PASS || 'changeme';
 
-  const auth = req.headers.get('authorization') || '';
+  const auth = request.headers.get('authorization') || '';
 
   if (!auth) {
-    return new NextResponse('Authentication required', {
+    return new Response('Authentication required', {
       status: 401,
       headers: { 'WWW-Authenticate': 'Basic realm="Protected"' }
     });
   }
 
-  const match = auth.match(/^Basic\s+(.+)$/i);
-  if (!match) {
-    return new NextResponse('Authentication required', {
+  const m = auth.match(/^Basic\s+(.+)$/i);
+  if (!m) {
+    return new Response('Authentication required', {
       status: 401,
       headers: { 'WWW-Authenticate': 'Basic realm="Protected"' }
     });
   }
 
-  // decode base64
   let creds = '';
   try {
-    creds = Buffer.from(match[1], 'base64').toString('utf8');
+    // atob is available in the Edge runtime to decode base64
+    creds = atob(m[1]);
   } catch (e) {
-    return new NextResponse('Invalid auth', { status: 400 });
+    return new Response('Invalid auth token', { status: 400 });
   }
 
   if (creds !== `${AUTH_USER}:${AUTH_PASS}`) {
-    return new NextResponse('Unauthorized', {
+    return new Response('Unauthorized', {
       status: 401,
       headers: { 'WWW-Authenticate': 'Basic realm="Protected"' }
     });
   }
 
-  return NextResponse.next();
+  // Allow the request to continue to the static site
+  // Returning nothing/undefined lets the platform continue the request.
+  return;
 }
 
-// protect all routes (but allow next.js static files and favicon)
+// Protect all paths except common static files (optional)
 export const config = {
   matcher: ['/', '/((?!_next/static|favicon.ico).*)']
 };
