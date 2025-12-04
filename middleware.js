@@ -1,5 +1,4 @@
 // middleware.js
-// Vercel Edge middleware (Web API) — Basic Auth
 export function middleware(request) {
   const AUTH_USER = process.env.BASIC_AUTH_USER || 'admin';
   const AUTH_PASS = process.env.BASIC_AUTH_PASS || 'changeme';
@@ -23,7 +22,6 @@ export function middleware(request) {
 
   let creds = '';
   try {
-    // atob is available in the Edge runtime to decode base64
     creds = atob(m[1]);
   } catch (e) {
     return new Response('Invalid auth token', { status: 400 });
@@ -36,12 +34,9 @@ export function middleware(request) {
     });
   }
 
-  // Allow the request to continue to the static site
-  // Returning nothing/undefined lets the platform continue the request.
   return;
 }
 
-// Protect all paths except common static files (optional)
 export const config = {
   matcher: ['/', '/((?!_next/static|favicon.ico).*)']
 };
