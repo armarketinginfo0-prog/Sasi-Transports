@@ -1,0 +1,1741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sasi Kumar Transports — Trip Manager</title>
+  <style>
+    :root {
+      --bg: #f3f4f6;
+      --card-bg: #ffffff;
+      --primary: #2563eb;
+      --primary-soft: #dbeafe;
+      --text-main: #111827;
+      --text-muted: #6b7280;
+      --border: #e5e7eb;
+      --danger: #b91c1c;
+      --success: #15803d;
+      --radius: 12px;
+      --shadow-soft: 0 10px 30px rgba(15, 23, 42, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      background: radial-gradient(circle at top left, #e0f2fe, #f9fafb);
+      color: var(--text-main);
+      min-height: 100vh;
+      padding: 16px;
+    }
+
+    .page {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* NAV BAR */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+      padding: 10px 16px;
+      border-radius: 999px;
+      background: #ffffff;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+      border: 1px solid rgba(15, 23, 42, 0.04);
+    }
+
+    .header-left {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    header h1 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    header p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .layout {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    @media (min-width: 900px) {
+      .layout {
+        flex-direction: row;
+        align-items: flex-start;
+      }
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-soft);
+      padding: 16px 18px;
+      border: 1px solid rgba(15, 23, 42, 0.03);
+    }
+
+    .form-card {
+      flex: 2;
+    }
+
+    .summary-card-wrapper {
+      flex: 1;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      gap: 8px;
+    }
+
+    .card-header h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .pill {
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: var(--primary-soft);
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .section-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      margin: 4px 0 4px;
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+
+    label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    input {
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      padding: 9px 12px;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+      background: #f9fafb;
+      width: 100%;
+    }
+
+    input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+      background: #ffffff;
+    }
+
+    input[type="date"] {
+      padding-inline: 10px;
+    }
+
+    input[readonly] {
+      background: #e5e7eb;
+      cursor: default;
+    }
+
+    .muted {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    button {
+      border-radius: 999px;
+      border: none;
+      font-size: 0.85rem;
+      padding: 9px 18px;
+      cursor: pointer;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: #ffffff;
+      box-shadow: 0 8px 18px rgba(37, 99, 235, 0.35);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--primary);
+      color: var(--primary);
+    }
+
+    .btn-small {
+      padding: 4px 10px;
+      font-size: 0.75rem;
+    }
+
+    .btn-large {
+      padding: 14px 24px;
+      font-size: 1rem;
+      border-radius: 999px;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .summary-card {
+      min-width: 0;
+    }
+
+    .summary-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      gap: 8px;
+    }
+
+    .summary-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .summary-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .summary-pill {
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #f9fafb;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .summary-item {
+      border-radius: 10px;
+      padding: 8px 10px;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+    }
+
+    .summary-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .summary-value {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-top: 2px;
+    }
+
+    .summary-value.positive {
+      color: var(--success);
+    }
+
+    .summary-value.negative {
+      color: var(--danger);
+    }
+
+    .summary-footer {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px dashed #e5e7eb;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .summary-footer-controls {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 0.72rem;
+      border: 1px solid #e5e7eb;
+      background: #f9fafb;
+    }
+
+    .badge-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+    }
+
+    .badge-dot.profit {
+      background: var(--success);
+    }
+
+    .badge-dot.loss {
+      background: var(--danger);
+    }
+
+    .badge-dot.pending {
+      background: #f59e0b;
+    }
+
+    .tip {
+      margin-top: 4px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .tip strong {
+      color: var(--text-main);
+    }
+
+    .step {
+      display: none;
+    }
+    .step.active {
+      display: block;
+    }
+
+    .step-indicator {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .summary-small {
+      opacity: 0.9;
+      transform: scale(0.98);
+    }
+
+    .summary-full {
+      max-width: 900px;
+      margin: 0 auto;
+      transform: scale(1);
+    }
+
+    .summary-full .summary-title {
+      font-size: 1.1rem;
+    }
+
+    .summary-full .summary-grid .summary-item {
+      padding: 10px 12px;
+    }
+
+    /* Saved message */
+    .saved-message {
+      margin-top: 12px;
+      text-align: center;
+      font-size: 0.9rem;
+    }
+
+    .saved-message p {
+      margin-bottom: 8px;
+      color: var(--text-muted);
+    }
+
+    /* Trips table */
+    .table-wrapper {
+      margin-top: 10px;
+      overflow-x: auto;
+    }
+
+    .trips-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.95rem;
+    }
+
+    .trips-table thead {
+      background: #eff6ff;
+    }
+
+    .trips-table th,
+    .trips-table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid #e5e7eb;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    .trips-table th {
+      font-weight: 600;
+      color: #374151;
+      font-size: 0.9rem;
+    }
+
+    .trips-table td {
+      font-size: 0.95rem;
+    }
+
+    .trips-table tr:hover {
+      background: #eef2ff;
+      cursor: pointer;
+    }
+
+    /* Mode screen */
+    .mode-card {
+      margin-top: 8px;
+      text-align: center;
+    }
+
+    .mode-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .mode-subtitle {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    .mode-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-width: 420px;
+      margin: 0 auto;
+      margin-top: 8px;
+    }
+
+    @media (min-width: 600px) {
+      .mode-actions {
+        flex-direction: row;
+      }
+    }
+
+    /* History search */
+    .history-header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .history-search-input {
+      min-width: 180px;
+      max-width: 260px;
+    }
+
+    .history-search-input input {
+      border-radius: 999px;
+      padding: 7px 12px;
+      font-size: 0.85rem;
+    }
+
+    /* Status dot */
+    .status-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      display: inline-block;
+    }
+
+    .status-dot.active {
+      background: #16a34a;
+    }
+
+    .status-dot.closed {
+      background: #9ca3af;
+    }
+
+    .status-dot.loss {
+      background: #b91c1c;
+    }
+
+    /* Active trips card */
+    .active-card {
+      margin-top: 16px;
+      text-align: left;
+    }
+
+    .active-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .active-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 0;
+      border-bottom: 1px dashed #e5e7eb;
+      font-size: 0.9rem;
+    }
+
+    .active-item-main {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .active-item-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .active-item-route {
+      font-weight: 600;
+    }
+
+    .active-item-meta {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    /* Update page */
+    .update-layout {
+      max-width: 700px;
+      margin: 0 auto;
+      margin-top: 8px;
+    }
+
+    .update-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    @media (min-width: 700px) {
+      .update-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    .update-summary {
+      font-size: 0.9rem;
+      margin-bottom: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <!-- NAV BAR -->
+    <header>
+      <div class="header-left">
+        <h1>Sasi Kumar Transports</h1>
+        <p>Trip manager — create, track and close your transport trips.</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn-ghost" id="headerHomeBtn">🏠 Home</button>
+        <button class="btn-outline hidden" id="headerViewHistoryBtn">📜 View history</button>
+      </div>
+    </header>
+
+    <!-- HOME: New Trip / View history + Active trip list -->
+    <div class="card mode-card" id="modeScreen">
+      <div class="mode-title">What do you want to do?</div>
+      <div class="mode-subtitle">Choose an option below to get started.</div>
+      <div class="mode-actions">
+        <button class="btn-primary btn-large" id="modeNewTripBtn">
+          ➕ New Trip
+        </button>
+        <button class="btn-outline btn-large" id="modeViewHistoryBtn">
+          📜 View history
+        </button>
+      </div>
+
+      <!-- Active trip list on home -->
+      <div class="card active-card" id="activeTripsCard">
+        <div class="card-header" style="margin-bottom:6px;">
+          <h2>Active trip</h2>
+        </div>
+        <div class="active-list" id="activeTripsBody">
+          <!-- Filled by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN LAYOUT (New Trip mode: form + summary) -->
+    <div class="layout hidden" id="mainLayout">
+      <!-- LEFT: BIG FORM -->
+      <div class="card form-card" id="formCard">
+        <div class="card-header">
+          <h2>
+            Trip Entry
+            <span class="pill" id="stepPill">Step 1 of 2</span>
+          </h2>
+          <span class="step-indicator" id="stepIndicator">Route details</span>
+        </div>
+
+        <form id="tripForm">
+          <!-- STEP 1 -->
+          <div class="step active" id="step1">
+            <div class="section-title">Route details</div>
+
+            <div class="field-group">
+              <div class="input-group">
+                <label for="routeFrom">From (state / district)</label>
+                <input list="locationList" id="routeFrom" placeholder="Type and select..." required />
+              </div>
+              <div class="input-group">
+                <label for="routeTo">To (state / district)</label>
+                <input list="locationList" id="routeTo" placeholder="Type and select..." required />
+              </div>
+              <div class="input-group">
+                <label for="startDate">Start date</label>
+                <input type="date" id="startDate" required />
+              </div>
+            </div>
+
+            <div class="actions">
+              <button type="button" class="btn-primary" id="nextStepBtn">
+                Next
+              </button>
+              <button type="reset" class="btn-ghost" id="resetBtn">
+                Clear
+              </button>
+            </div>
+            <p class="tip">
+              Step 1: Enter starting details. After this, a <strong>Trip Code</strong> will be generated automatically.
+            </p>
+          </div>
+
+          <!-- STEP 2 -->
+          <div class="step" id="step2">
+            <div class="section-title">Trip code & cost details</div>
+
+            <div class="field-group">
+              <div class="input-group">
+                <label for="tripCode">Trip code (auto-generated)</label>
+                <input type="text" id="tripCode" readonly />
+              </div>
+            </div>
+
+            <div class="field-group">
+              <div class="input-group">
+                <label for="totalCost">Total transport cost (amount you charge client) (₹)</label>
+                <input type="number" id="totalCost" placeholder="e.g. 50000" min="0" step="0.01" required />
+              </div>
+              <div class="input-group">
+                <label for="estimatedCost">Estimated total trip cost (your expected trip expense) (₹)</label>
+                <input type="number" id="estimatedCost" placeholder="e.g. 38000" min="0" step="0.01" required />
+              </div>
+              <div class="input-group">
+                <label for="advancePaid">Advance paid (₹)</label>
+                <input type="number" id="advancePaid" placeholder="e.g. 15000" min="0" step="0.01" />
+              </div>
+              <div class="input-group" id="advanceDateGroup" style="display:none;">
+                <label for="advancePaidDate">Advance paid date</label>
+                <input type="date" id="advancePaidDate" />
+              </div>
+            </div>
+
+            <div class="actions">
+              <button type="submit" class="btn-primary">
+                Save &amp; Calculate
+              </button>
+              <button type="button" class="btn-ghost" id="backStepBtn">
+                Back
+              </button>
+            </div>
+            <p class="tip">
+              Estimated profit = Total transport cost − Estimated total trip cost.  
+              Pending from client = Total transport cost − Advance.
+            </p>
+          </div>
+        </form>
+      </div>
+
+      <!-- RIGHT: SUMMARY -->
+      <div class="summary-card-wrapper" id="summaryWrapper">
+        <div class="card summary-card summary-small" id="summaryCard">
+          <div class="summary-header">
+            <div>
+              <div class="summary-title">Trip Summary</div>
+              <div class="muted" id="summaryTitle">Fill the form to see totals.</div>
+            </div>
+            <div class="summary-header-actions">
+              <button class="btn-outline hidden" id="newTripBtn">New Trip</button>
+              <span class="summary-pill" id="summaryStatus">Preview</span>
+            </div>
+          </div>
+
+          <!-- Summary content (grid + footer) -->
+          <div id="summaryContent">
+            <div class="summary-grid">
+              <div class="summary-item">
+                <div class="summary-label">Trip code</div>
+                <div class="summary-value" id="tripCodeDisplay">—</div>
+              </div>
+              <div class="summary-item">
+                <div class="summary-label">Route</div>
+                <div class="summary-value" id="routeDisplay">—</div>
+              </div>
+              <div class="summary-item">
+                <div class="summary-label">Start date</div>
+                <div class="summary-value" id="startDateDisplay">—</div>
+              </div>
+              <div class="summary-item">
+                <div class="summary-label">Total transport cost (client billing)</div>
+                <div class="summary-value" id="totalCostDisplay">₹0</div>
+              </div>
+              <div class="summary-item">
+                <div class="summary-label">Estimated total trip cost</div>
+                <div class="summary-value" id="estimatedCostDisplay">₹0</div>
+              </div>
+              <div class="summary-item">
+                <div class="summary-label">Estimated profit (total − est)</div>
+                <div class="summary-value" id="profitDisplay">₹0</div>
+              </div>
+              <div class="summary-item">
+                <div class="summary-label">Advance paid</div>
+                <div class="summary-value" id="advanceDisplay">₹0</div>
+              </div>
+              <div class="summary-item">
+                <div class="summary-label">Pending from client (total − advance)</div>
+                <div class="summary-value" id="pendingDisplay">₹0</div>
+              </div>
+              <div class="summary-item">
+                <div class="summary-label">Advance paid date</div>
+                <div class="summary-value" id="advanceDateDisplay">—</div>
+              </div>
+            </div>
+
+            <div class="summary-footer">
+              <div>
+                <div class="badge" id="profitBadge">
+                  <span class="badge-dot profit"></span>
+                  <span id="profitBadgeText">No profit data yet</span>
+                </div>
+                <div class="badge">
+                  <span class="badge-dot pending"></span>
+                  <span id="pendingBadgeText">No pending amount yet</span>
+                </div>
+              </div>
+              <div class="summary-footer-controls">
+                <button class="btn-ghost" id="editTripBtn">Edit</button>
+                <button class="btn-primary" id="summarySaveBtn">Save</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Saved message shown after Save -->
+          <div class="saved-message hidden" id="savedMessage">
+            <p>Record saved, thank you.</p>
+            <button class="btn-primary" id="viewSavedRecordBtn">View saved record</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- UPDATE PAGE (Incremental) -->
+    <div class="card hidden" id="updateCard">
+      <div class="update-layout">
+        <div class="card-header">
+          <h2>Update Trip (Add new payments & expenses)</h2>
+          <span class="pill" id="updateTripCodeTag">TRIP</span>
+        </div>
+
+        <div class="update-summary">
+          <div><strong>Route:</strong> <span id="updateRouteDisplay">—</span></div>
+          <div><strong>Start date:</strong> <span id="updateStartDateDisplay">—</span></div>
+          <div><strong>Pending from client:</strong> <span id="updatePendingDisplay">₹0</span></div>
+        </div>
+
+        <form id="updateForm">
+          <div class="section-title">New amounts to add now</div>
+
+          <div class="update-grid">
+            <div class="input-group">
+              <label for="updateAmountReceived">Amount received now (₹)</label>
+              <input type="number" id="updateAmountReceived" placeholder="e.g. 5000" min="0" step="0.01" />
+            </div>
+            <div class="input-group">
+              <label for="updateDieselCost">Diesel cost now (₹)</label>
+              <input type="number" id="updateDieselCost" placeholder="e.g. 3000" min="0" step="0.01" />
+            </div>
+            <div class="input-group">
+              <label for="updateDriverCost">Driver cost now (₹)</label>
+              <input type="number" id="updateDriverCost" placeholder="e.g. 1000" min="0" step="0.01" />
+            </div>
+            <div class="input-group">
+              <label for="updateServiceCost">Vehicle service cost now (₹)</label>
+              <input type="number" id="updateServiceCost" placeholder="e.g. 500" min="0" step="0.01" />
+            </div>
+            <div class="input-group">
+              <label for="updateMiscCost">Miscellaneous cost now (₹)</label>
+              <input type="number" id="updateMiscCost" placeholder="e.g. 200" min="0" step="0.01" />
+            </div>
+          </div>
+
+          <p class="tip">
+            These values are <strong>added</strong> to the existing totals of this trip.  
+            Use the Edit button if you want to fully modify the trip.
+          </p>
+
+          <div class="actions">
+            <button type="submit" class="btn-primary">Save update</button>
+            <button type="button" class="btn-ghost" id="updateEditFullBtn">Edit full trip</button>
+            <button type="button" class="btn-ghost" id="updateCancelBtn">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- SAVED TRIPS LIST (View history) -->
+    <div class="card hidden" id="tripsListCard" style="margin-top:16px;">
+      <div class="card-header">
+        <h2>Saved Trips (this device)</h2>
+        <div class="history-header-right">
+          <div class="history-search-input">
+            <input
+              type="text"
+              id="historySearch"
+              placeholder="Search by trip code, from, to..."
+            />
+          </div>
+          <button class="btn-outline" id="historyNewTripBtn">➕ New Trip</button>
+        </div>
+      </div>
+      <div class="table-wrapper">
+        <table class="trips-table">
+          <thead>
+            <tr>
+              <th>Status</th>
+              <th>Trip Code</th>
+              <th>Route</th>
+              <th>Start Date</th>
+              <th>Total Cost</th>
+              <th>Est. Cost</th>
+              <th>Est. Profit</th>
+              <th>Pending</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="tripsTableBody">
+            <!-- Filled by JS -->
+          </tbody>
+        </table>
+      </div>
+      <p class="tip">Tap / click a row to load that trip into the form for editing.</p>
+    </div>
+  </div>
+
+  <!-- LOCATIONS -->
+  <datalist id="locationList">
+    <!-- States / UTs -->
+    <option value="Andhra Pradesh"></option>
+    <option value="Arunachal Pradesh"></option>
+    <option value="Assam"></option>
+    <option value="Bihar"></option>
+    <option value="Chhattisgarh"></option>
+    <option value="Goa"></option>
+    <option value="Gujarat"></option>
+    <option value="Haryana"></option>
+    <option value="Himachal Pradesh"></option>
+    <option value="Jharkhand"></option>
+    <option value="Karnataka"></option>
+    <option value="Kerala"></option>
+    <option value="Madhya Pradesh"></option>
+    <option value="Maharashtra"></option>
+    <option value="Manipur"></option>
+    <option value="Meghalaya"></option>
+    <option value="Mizoram"></option>
+    <option value="Nagaland"></option>
+    <option value="Odisha"></option>
+    <option value="Punjab"></option>
+    <option value="Rajasthan"></option>
+    <option value="Sikkim"></option>
+    <option value="Tamil Nadu"></option>
+    <option value="Telangana"></option>
+    <option value="Tripura"></option>
+    <option value="Uttar Pradesh"></option>
+    <option value="Uttarakhand"></option>
+    <option value="West Bengal"></option>
+    <option value="Andaman and Nicobar Islands"></option>
+    <option value="Chandigarh"></option>
+    <option value="Dadra and Nagar Haveli and Daman and Diu"></option>
+    <option value="Delhi"></option>
+    <option value="Jammu and Kashmir"></option>
+    <option value="Ladakh"></option>
+    <option value="Lakshadweep"></option>
+    <option value="Puducherry"></option>
+
+    <!-- Sample cities -->
+    <option value="Tamil Nadu - Chennai"></option>
+    <option value="Tamil Nadu - Coimbatore"></option>
+    <option value="Tamil Nadu - Erode"></option>
+    <option value="Tamil Nadu - Tiruppur"></option>
+    <option value="Tamil Nadu - Madurai"></option>
+    <option value="Tamil Nadu - Salem"></option>
+    <option value="Tamil Nadu - Trichy"></option>
+    <option value="Tamil Nadu - Hosur"></option>
+
+    <option value="Karnataka - Bengaluru"></option>
+    <option value="Karnataka - Mangalore"></option>
+    <option value="Karnataka - Mysuru"></option>
+
+    <option value="Maharashtra - Mumbai"></option>
+    <option value="Maharashtra - Pune"></option>
+    <option value="Gujarat - Ahmedabad"></option>
+    <option value="Gujarat - Surat"></option>
+    <option value="Delhi - New Delhi"></option>
+    <option value="West Bengal - Kolkata"></option>
+  </datalist>
+
+  <script>
+    function toNumber(v) {
+      const n = parseFloat(v);
+      return isNaN(n) ? 0 : n;
+    }
+
+    function formatCurrency(v) {
+      return "₹" + v.toLocaleString("en-IN", { maximumFractionDigits: 2 });
+    }
+	// === API SETTINGS ===
+const API_BASE = window.location.origin;
+
+// Send a single trip to the backend (create/update)
+async function syncTripToServer(trip) {
+  try {
+    await fetch(API_BASE + "/trips", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(trip),
+    });
+  } catch (err) {
+    console.error("Failed to sync trip to server", err);
+  }
+}
+
+
+    const usedTripCodes = new Set();
+    let currentUpdateTripCode = null;
+
+    function getStoredTrips() {
+      const raw = localStorage.getItem("trips");
+      if (!raw) return [];
+      try {
+        const arr = JSON.parse(raw);
+        return Array.isArray(arr) ? arr : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function saveTrips(trips) {
+      localStorage.setItem("trips", JSON.stringify(trips));
+    }
+function saveTrip(payload) {
+  const trips = getStoredTrips();
+  const idx = trips.findIndex(t => t.tripCode === payload.tripCode);
+  if (idx >= 0) {
+    trips[idx] = payload;
+  } else {
+    trips.push(payload);
+  }
+  // still keep local copy
+  saveTrips(trips);
+
+  // also sync this trip to the backend API
+  syncTripToServer(payload);
+}
+
+
+    function generateTripCode(startDate) {
+      if (!startDate) return "";
+      const y = startDate.slice(0, 4);
+      const m = startDate.slice(5, 7);
+      const d = startDate.slice(8, 10);
+      let code;
+      do {
+        const random = Math.floor(10000 + Math.random() * 90000); // 5 digits
+        code = `TR-${y}${m}${d}-${random}`;
+      } while (usedTripCodes.has(code));
+      usedTripCodes.add(code);
+      return code;
+    }
+
+    const modeScreen = document.getElementById("modeScreen");
+    const modeNewTripBtn = document.getElementById("modeNewTripBtn");
+    const modeViewHistoryBtn = document.getElementById("modeViewHistoryBtn");
+    const headerHomeBtn = document.getElementById("headerHomeBtn");
+    const headerViewHistoryBtn = document.getElementById("headerViewHistoryBtn");
+
+    const mainLayout = document.getElementById("mainLayout");
+    const step1 = document.getElementById("step1");
+    const step2 = document.getElementById("step2");
+    const nextStepBtn = document.getElementById("nextStepBtn");
+    const backStepBtn = document.getElementById("backStepBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const stepPill = document.getElementById("stepPill");
+    const stepIndicator = document.getElementById("stepIndicator");
+    const advancePaidInput = document.getElementById("advancePaid");
+    const advanceDateGroup = document.getElementById("advanceDateGroup");
+    const tripCodeInput = document.getElementById("tripCode");
+    const formCard = document.getElementById("formCard");
+    const summaryCard = document.getElementById("summaryCard");
+    const summaryContent = document.getElementById("summaryContent");
+    const savedMessage = document.getElementById("savedMessage");
+    const viewSavedRecordBtn = document.getElementById("viewSavedRecordBtn");
+    const newTripBtn = document.getElementById("newTripBtn");
+    const editTripBtn = document.getElementById("editTripBtn");
+    const summarySaveBtn = document.getElementById("summarySaveBtn");
+    const tripsListCard = document.getElementById("tripsListCard");
+    const historyNewTripBtn = document.getElementById("historyNewTripBtn");
+    const tripsTableBody = document.getElementById("tripsTableBody");
+    const historySearch = document.getElementById("historySearch");
+    const activeTripsBody = document.getElementById("activeTripsBody");
+
+    const updateCard = document.getElementById("updateCard");
+    const updateTripCodeTag = document.getElementById("updateTripCodeTag");
+    const updateRouteDisplay = document.getElementById("updateRouteDisplay");
+    const updateStartDateDisplay = document.getElementById("updateStartDateDisplay");
+    const updatePendingDisplay = document.getElementById("updatePendingDisplay");
+    const updateForm = document.getElementById("updateForm");
+    const updateAmountReceived = document.getElementById("updateAmountReceived");
+    const updateDieselCost = document.getElementById("updateDieselCost");
+    const updateDriverCost = document.getElementById("updateDriverCost");
+    const updateServiceCost = document.getElementById("updateServiceCost");
+    const updateMiscCost = document.getElementById("updateMiscCost");
+    const updateEditFullBtn = document.getElementById("updateEditFullBtn");
+    const updateCancelBtn = document.getElementById("updateCancelBtn");
+
+    function resetSummary() {
+      document.getElementById("tripCodeDisplay").textContent = "—";
+      document.getElementById("routeDisplay").textContent = "—";
+      document.getElementById("startDateDisplay").textContent = "—";
+      document.getElementById("totalCostDisplay").textContent = "₹0";
+      document.getElementById("estimatedCostDisplay").textContent = "₹0";
+      document.getElementById("profitDisplay").textContent = "₹0";
+      document.getElementById("advanceDisplay").textContent = "₹0";
+      document.getElementById("pendingDisplay").textContent = "₹0";
+      document.getElementById("advanceDateDisplay").textContent = "—";
+      document.getElementById("summaryStatus").textContent = "Preview";
+      document.getElementById("summaryTitle").textContent = "Fill the form to see totals.";
+      document.getElementById("profitBadgeText").textContent = "No profit data yet";
+      document.getElementById("pendingBadgeText").textContent = "No pending amount yet";
+      document.getElementById("profitDisplay").classList.remove("positive", "negative");
+
+      formCard.classList.remove("hidden");
+      summaryCard.classList.remove("summary-full");
+      summaryCard.classList.add("summary-small");
+      newTripBtn.classList.add("hidden");
+
+      savedMessage.classList.add("hidden");
+      summaryContent.classList.remove("hidden");
+    }
+
+    function renderActiveTrips() {
+      const trips = getStoredTrips().filter(
+        t => (t.status || "active") !== "closed"
+      );
+      activeTripsBody.innerHTML = "";
+
+      if (!trips.length) {
+        const p = document.createElement("p");
+        p.className = "muted";
+        p.textContent = "No active trips.";
+        activeTripsBody.appendChild(p);
+        return;
+      }
+
+      trips.forEach(trip => {
+        const item = document.createElement("div");
+        item.className = "active-item";
+
+        const main = document.createElement("div");
+        main.className = "active-item-main";
+
+        const dot = document.createElement("span");
+        const isLoss = (trip.estimatedProfit || 0) < 0;
+        dot.className = "status-dot " + (isLoss ? "loss" : "active");
+
+        const textWrap = document.createElement("div");
+        textWrap.className = "active-item-text";
+
+        const routeText = document.createElement("div");
+        routeText.className = "active-item-route";
+        routeText.textContent =
+          (trip.tripCode ? trip.tripCode + " • " : "") +
+          (trip.routeFrom || "") +
+          " → " +
+          (trip.routeTo || "");
+
+        const meta = document.createElement("div");
+        meta.className = "active-item-meta";
+        meta.textContent = trip.startDate
+          ? "Start: " + trip.startDate
+          : "No start date";
+
+        textWrap.appendChild(routeText);
+        textWrap.appendChild(meta);
+
+        main.appendChild(dot);
+        main.appendChild(textWrap);
+
+        const btnWrap = document.createElement("div");
+        btnWrap.style.display = "flex";
+        btnWrap.style.gap = "6px";
+
+        const updateBtn = document.createElement("button");
+        updateBtn.className = "btn-ghost btn-small";
+        updateBtn.textContent = "Update";
+        updateBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          updateTrip(trip.tripCode);
+        });
+
+        const closeBtn = document.createElement("button");
+        closeBtn.className = "btn-ghost btn-small";
+        closeBtn.textContent = "Close trip";
+        closeBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          closeTrip(trip.tripCode);
+        });
+
+        btnWrap.appendChild(updateBtn);
+        btnWrap.appendChild(closeBtn);
+
+        item.appendChild(main);
+        item.appendChild(btnWrap);
+
+        activeTripsBody.appendChild(item);
+      });
+    }
+
+    function renderTripsTable() {
+      const q = (historySearch.value || "").trim().toLowerCase();
+      const trips = getStoredTrips();
+      tripsTableBody.innerHTML = "";
+
+      let filtered = trips;
+      if (q) {
+        filtered = trips.filter(t => {
+          const code = (t.tripCode || "").toLowerCase();
+          const from = (t.routeFrom || "").toLowerCase();
+          const to = (t.routeTo || "").toLowerCase();
+          return code.includes(q) || from.includes(q) || to.includes(q);
+        });
+      }
+
+      if (!filtered.length) {
+        const row = document.createElement("tr");
+        const cell = document.createElement("td");
+        cell.colSpan = 9;
+        cell.textContent = q ? "No trips match your search." : "No trips saved yet.";
+        cell.style.fontSize = "0.9rem";
+        cell.style.color = "#6b7280";
+        row.appendChild(cell);
+        tripsTableBody.appendChild(row);
+        return;
+      }
+
+      filtered.forEach(trip => {
+        if (trip.tripCode) usedTripCodes.add(trip.tripCode);
+
+        const row = document.createElement("tr");
+        row.dataset.tripCode = trip.tripCode;
+
+        // Status cell
+        const statusTd = document.createElement("td");
+        const dot = document.createElement("span");
+        const status = trip.status || "active";
+        let statusClass;
+        if (status === "closed") {
+          statusClass = "closed";
+        } else if ((trip.estimatedProfit || 0) < 0) {
+          statusClass = "loss";
+        } else {
+          statusClass = "active";
+        }
+        dot.className = "status-dot " + statusClass;
+        statusTd.appendChild(dot);
+        row.appendChild(statusTd);
+
+        const routeText = `${trip.routeFrom} → ${trip.routeTo}`;
+
+        const cells = [
+          trip.tripCode,
+          routeText,
+          trip.startDate || "",
+          formatCurrency(trip.totalTransportCost || 0),
+          formatCurrency(trip.estimatedTripCost || 0),
+          formatCurrency(trip.estimatedProfit || 0),
+          formatCurrency(trip.pendingFromClient || 0)
+        ];
+
+        cells.forEach(text => {
+          const td = document.createElement("td");
+          td.textContent = text;
+          row.appendChild(td);
+        });
+
+        // Actions column
+        const actionsTd = document.createElement("td");
+        if (status === "closed") {
+          actionsTd.textContent = "Closed";
+          actionsTd.style.fontSize = "0.8rem";
+          actionsTd.style.color = "#6b7280";
+        } else {
+          const updateBtn = document.createElement("button");
+          updateBtn.className = "btn-ghost btn-small";
+          updateBtn.textContent = "Update";
+          updateBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            updateTrip(trip.tripCode);
+          });
+
+          const closeBtn = document.createElement("button");
+          closeBtn.className = "btn-ghost btn-small";
+          closeBtn.textContent = "Close trip";
+          closeBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            closeTrip(trip.tripCode);
+          });
+
+          actionsTd.appendChild(updateBtn);
+          actionsTd.appendChild(closeBtn);
+        }
+        row.appendChild(actionsTd);
+
+        tripsTableBody.appendChild(row);
+      });
+    }
+
+    function closeTrip(tripCode) {
+      const trips = getStoredTrips();
+      const idx = trips.findIndex(t => t.tripCode === tripCode);
+      if (idx === -1) return;
+      trips[idx].status = "closed";
+      saveTrips(trips);
+      renderActiveTrips();
+      renderTripsTable();
+    }
+
+    function showHome() {
+      modeScreen.classList.remove("hidden");
+      mainLayout.classList.add("hidden");
+      tripsListCard.classList.add("hidden");
+      updateCard.classList.add("hidden");
+      headerViewHistoryBtn.classList.add("hidden");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function openUpdatePage(tripCode) {
+      const trips = getStoredTrips();
+      const trip = trips.find(t => t.tripCode === tripCode);
+      if (!trip) {
+        alert("Trip not found.");
+        return;
+      }
+      currentUpdateTripCode = tripCode;
+
+      // Fill header info
+      updateTripCodeTag.textContent = trip.tripCode || "TRIP";
+      const routeText = (trip.routeFrom || "") + " → " + (trip.routeTo || "");
+      updateRouteDisplay.textContent = routeText || "—";
+      updateStartDateDisplay.textContent = trip.startDate || "—";
+      updatePendingDisplay.textContent = formatCurrency(trip.pendingFromClient || 0);
+
+      // Clear inputs
+      updateAmountReceived.value = "";
+      updateDieselCost.value = "";
+      updateDriverCost.value = "";
+      updateServiceCost.value = "";
+      updateMiscCost.value = "";
+
+      // Show update page
+      modeScreen.classList.add("hidden");
+      mainLayout.classList.add("hidden");
+      tripsListCard.classList.add("hidden");
+      updateCard.classList.remove("hidden");
+      headerViewHistoryBtn.classList.remove("hidden");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    // UPDATE (from home & history)
+    function updateTrip(tripCode) {
+      openUpdatePage(tripCode);
+    }
+
+    // Load trip into full form
+    function loadTripIntoForm(tripCode) {
+      const trips = getStoredTrips();
+      const trip = trips.find(t => t.tripCode === tripCode);
+      if (!trip) return;
+
+      document.getElementById("routeFrom").value = trip.routeFrom || "";
+      document.getElementById("routeTo").value = trip.routeTo || "";
+      document.getElementById("startDate").value = trip.startDate || "";
+      document.getElementById("totalCost").value = trip.totalTransportCost || "";
+      document.getElementById("estimatedCost").value = trip.estimatedTripCost || "";
+      document.getElementById("advancePaid").value = trip.advancePaid || "";
+      document.getElementById("advancePaidDate").value = trip.advancePaidDate || "";
+      tripCodeInput.value = trip.tripCode || "";
+
+      if (toNumber(trip.advancePaid) > 0) {
+        advanceDateGroup.style.display = "block";
+      } else {
+        advanceDateGroup.style.display = "none";
+      }
+
+      const routeText = (trip.routeFrom || "") + " → " + (trip.routeTo || "");
+      document.getElementById("tripCodeDisplay").textContent = trip.tripCode || "—";
+      document.getElementById("routeDisplay").textContent = routeText || "—";
+      document.getElementById("startDateDisplay").textContent = trip.startDate || "—";
+      document.getElementById("totalCostDisplay").textContent = formatCurrency(trip.totalTransportCost || 0);
+      document.getElementById("estimatedCostDisplay").textContent = formatCurrency(trip.estimatedTripCost || 0);
+      document.getElementById("profitDisplay").textContent = formatCurrency(trip.estimatedProfit || 0);
+      document.getElementById("advanceDisplay").textContent = formatCurrency(trip.advancePaid || 0);
+      document.getElementById("pendingDisplay").textContent = formatCurrency(trip.pendingFromClient || 0);
+      document.getElementById("advanceDateDisplay").textContent =
+        trip.advancePaid && trip.advancePaidDate ? trip.advancePaidDate : "—";
+
+      document.getElementById("summaryTitle").textContent =
+        (trip.tripCode ? trip.tripCode + " • " : "") +
+        routeText +
+        (trip.startDate ? " • " + trip.startDate : "");
+
+      modeScreen.classList.add("hidden");
+      mainLayout.classList.remove("hidden");
+      tripsListCard.classList.remove("hidden");
+      updateCard.classList.add("hidden");
+      headerViewHistoryBtn.classList.remove("hidden");
+
+      formCard.classList.remove("hidden");
+      summaryCard.classList.remove("summary-full");
+      summaryCard.classList.add("summary-small");
+      newTripBtn.classList.add("hidden");
+
+      savedMessage.classList.add("hidden");
+      summaryContent.classList.remove("hidden");
+
+      step1.classList.remove("active");
+      step2.classList.add("active");
+      stepPill.textContent = "Step 2 of 2";
+      stepIndicator.textContent = "Cost details";
+    }
+
+    // Row click to load from history
+    tripsTableBody.addEventListener("click", (e) => {
+      const row = e.target.closest("tr");
+      if (!row || !row.dataset.tripCode) return;
+      loadTripIntoForm(row.dataset.tripCode);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+    function enterNewTripMode() {
+      modeScreen.classList.add("hidden");
+      mainLayout.classList.remove("hidden");
+      tripsListCard.classList.add("hidden");
+      updateCard.classList.add("hidden");
+      headerViewHistoryBtn.classList.remove("hidden");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    modeNewTripBtn.addEventListener("click", enterNewTripMode);
+
+    function enterHistoryOnlyMode() {
+      modeScreen.classList.add("hidden");
+      mainLayout.classList.add("hidden");
+      updateCard.classList.add("hidden");
+      tripsListCard.classList.remove("hidden");
+      headerViewHistoryBtn.classList.add("hidden");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    modeViewHistoryBtn.addEventListener("click", enterHistoryOnlyMode);
+
+    headerViewHistoryBtn.addEventListener("click", () => {
+      mainLayout.classList.add("hidden");
+      updateCard.classList.add("hidden");
+      tripsListCard.classList.remove("hidden");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+    headerHomeBtn.addEventListener("click", showHome);
+
+    historyNewTripBtn.addEventListener("click", () => {
+      enterNewTripMode();
+      document.getElementById("tripForm").reset();
+      tripCodeInput.value = "";
+      step2.classList.remove("active");
+      step1.classList.add("active");
+      stepPill.textContent = "Step 1 of 2";
+      stepIndicator.textContent = "Route details";
+      advanceDateGroup.style.display = "none";
+      resetSummary();
+    });
+
+    historySearch.addEventListener("input", () => {
+      renderTripsTable();
+    });
+
+    // NEXT (Step 1 -> Step 2)
+    nextStepBtn.addEventListener("click", () => {
+      const routeFrom = document.getElementById("routeFrom").value.trim();
+      const routeTo = document.getElementById("routeTo").value.trim();
+      const startDate = document.getElementById("startDate").value;
+
+      if (!routeFrom || !routeTo || !startDate) {
+        alert("Please fill From, To and Start date to continue.");
+        return;
+      }
+
+      if (!tripCodeInput.value) {
+        const code = generateTripCode(startDate);
+        tripCodeInput.value = code;
+        document.getElementById("tripCodeDisplay").textContent = code || "—";
+      }
+
+      const routeText = routeFrom + " → " + routeTo;
+      document.getElementById("routeDisplay").textContent = routeText;
+      document.getElementById("startDateDisplay").textContent = startDate || "—";
+      document.getElementById("summaryTitle").textContent =
+        routeText + " • " + (startDate || "");
+
+      step1.classList.remove("active");
+      step2.classList.add("active");
+      stepPill.textContent = "Step 2 of 2";
+      stepIndicator.textContent = "Cost details";
+    });
+
+    // BACK (Step 2 -> Step 1)
+    backStepBtn.addEventListener("click", () => {
+      step2.classList.remove("active");
+      step1.classList.add("active");
+      stepPill.textContent = "Step 1 of 2";
+      stepIndicator.textContent = "Route details";
+    });
+
+    // RESET
+    resetBtn.addEventListener("click", () => {
+      tripCodeInput.value = "";
+      step2.classList.remove("active");
+      step1.classList.add("active");
+      stepPill.textContent = "Step 1 of 2";
+      stepIndicator.textContent = "Route details";
+      advanceDateGroup.style.display = "none";
+      resetSummary();
+    });
+
+    // Show/hide advance date
+    advancePaidInput.addEventListener("input", () => {
+      const val = toNumber(advancePaidInput.value);
+      if (val > 0) {
+        advanceDateGroup.style.display = "block";
+      } else {
+        advanceDateGroup.style.display = "none";
+        document.getElementById("advancePaidDate").value = "";
+      }
+    });
+
+    // New Trip button in summary
+    newTripBtn.addEventListener("click", () => {
+      document.getElementById("tripForm").reset();
+      tripCodeInput.value = "";
+      step2.classList.remove("active");
+      step1.classList.add("active");
+      stepPill.textContent = "Step 1 of 2";
+      stepIndicator.textContent = "Route details";
+      advanceDateGroup.style.display = "none";
+      resetSummary();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+    // Edit button in summary
+    editTripBtn.addEventListener("click", () => {
+      formCard.classList.remove("hidden");
+      summaryCard.classList.remove("summary-full");
+      summaryCard.classList.add("summary-small");
+      newTripBtn.classList.add("hidden");
+      savedMessage.classList.add("hidden");
+      summaryContent.classList.remove("hidden");
+      step1.classList.remove("active");
+      step2.classList.add("active");
+      stepPill.textContent = "Step 2 of 2";
+      stepIndicator.textContent = "Cost details";
+    });
+
+    // Save button in summary
+    summarySaveBtn.addEventListener("click", () => {
+      document.getElementById("tripForm").requestSubmit();
+    });
+
+    // View saved record button
+    viewSavedRecordBtn.addEventListener("click", () => {
+      savedMessage.classList.add("hidden");
+      summaryContent.classList.remove("hidden");
+      newTripBtn.classList.remove("hidden");
+    });
+
+    // SUBMIT main Trip form
+    document.getElementById("tripForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      const routeFrom = document.getElementById("routeFrom").value.trim();
+      const routeTo = document.getElementById("routeTo").value.trim();
+      const startDate = document.getElementById("startDate").value;
+      const totalCost = toNumber(document.getElementById("totalCost").value);
+      const estimatedCost = toNumber(document.getElementById("estimatedCost").value);
+      const advancePaid = toNumber(document.getElementById("advancePaid").value);
+      const advancePaidDate = document.getElementById("advancePaidDate").value;
+      const tripCode = tripCodeInput.value;
+
+      const profit = totalCost - estimatedCost;
+      const pending = totalCost - advancePaid;
+
+      const routeText = routeFrom + " → " + routeTo;
+
+      document.getElementById("tripCodeDisplay").textContent = tripCode || "—";
+      document.getElementById("routeDisplay").textContent = routeText || "—";
+      document.getElementById("startDateDisplay").textContent = startDate || "—";
+      document.getElementById("totalCostDisplay").textContent = formatCurrency(totalCost);
+      document.getElementById("estimatedCostDisplay").textContent = formatCurrency(estimatedCost);
+      document.getElementById("profitDisplay").textContent = formatCurrency(profit);
+      document.getElementById("advanceDisplay").textContent = formatCurrency(advancePaid);
+      document.getElementById("pendingDisplay").textContent = formatCurrency(pending);
+      document.getElementById("advanceDateDisplay").textContent =
+        advancePaid > 0 && advancePaidDate ? advancePaidDate : "—";
+
+      document.getElementById("summaryStatus").textContent = "Saved";
+
+      const profitDisplay = document.getElementById("profitDisplay");
+      const profitBadgeText = document.getElementById("profitBadgeText");
+      const pendingBadgeText = document.getElementById("pendingBadgeText");
+
+      profitDisplay.classList.remove("positive", "negative");
+      if (profit > 0) {
+        profitDisplay.classList.add("positive");
+        profitBadgeText.textContent = "Trip is in estimated profit (total > estimated cost)";
+      } else if (profit < 0) {
+        profitDisplay.classList.add("negative");
+        profitBadgeText.textContent = "Trip is in estimated loss (estimated cost > total)";
+      } else {
+        profitBadgeText.textContent = "Estimated break-even trip";
+      }
+
+      if (pending > 0) {
+        pendingBadgeText.textContent = "Client has pending payment";
+      } else if (pending < 0) {
+        pendingBadgeText.textContent = "Extra amount received";
+      } else {
+        pendingBadgeText.textContent = "Fully paid";
+      }
+
+      document.getElementById("summaryTitle").textContent =
+        (tripCode ? tripCode + " • " : "") +
+        routeText +
+        (startDate ? " • " + startDate : "");
+
+      const existing = getStoredTrips().find(t => t.tripCode === tripCode);
+      const status = existing ? (existing.status || "active") : "active";
+
+      const payload = {
+        ...(existing || {}),
+        tripCode,
+        routeFrom,
+        routeTo,
+        startDate,
+        totalTransportCost: totalCost,
+        estimatedTripCost: estimatedCost,
+        estimatedProfit: profit,
+        advancePaid,
+        advancePaidDate: advancePaidDate || null,
+        pendingFromClient: pending,
+        status
+      };
+      saveTrip(payload);
+      renderTripsTable();
+      renderActiveTrips();
+
+      formCard.classList.add("hidden");
+      summaryCard.classList.remove("summary-small");
+      summaryCard.classList.add("summary-full");
+      summaryContent.classList.add("hidden");
+      savedMessage.classList.remove("hidden");
+      newTripBtn.classList.add("hidden");
+    });
+
+    // UPDATE FORM SUBMIT (incremental)
+    updateForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      if (!currentUpdateTripCode) {
+        alert("No trip selected for update.");
+        return;
+      }
+
+      const trips = getStoredTrips();
+      const idx = trips.findIndex(t => t.tripCode === currentUpdateTripCode);
+      if (idx === -1) {
+        alert("Trip not found.");
+        return;
+      }
+      const trip = trips[idx];
+
+      const extraReceived = toNumber(updateAmountReceived.value);
+      const extraDiesel = toNumber(updateDieselCost.value);
+      const extraDriver = toNumber(updateDriverCost.value);
+      const extraService = toNumber(updateServiceCost.value);
+      const extraMisc = toNumber(updateMiscCost.value);
+
+      if (
+        extraReceived <= 0 &&
+        extraDiesel <= 0 &&
+        extraDriver <= 0 &&
+        extraService <= 0 &&
+        extraMisc <= 0
+      ) {
+        alert("Please enter at least one value to update.");
+        return;
+      }
+
+      if (extraReceived > 0) {
+        trip.advancePaid = (trip.advancePaid || 0) + extraReceived;
+        const total = trip.totalTransportCost || 0;
+        trip.pendingFromClient = total - trip.advancePaid;
+      }
+
+      if (extraDiesel > 0) {
+        trip.dieselCost = (trip.dieselCost || 0) + extraDiesel;
+      }
+
+      if (extraDriver > 0) {
+        trip.driverCost = (trip.driverCost || 0) + extraDriver;
+      }
+
+      if (extraService > 0) {
+        trip.vehicleServiceCost = (trip.vehicleServiceCost || 0) + extraService;
+      }
+
+      if (extraMisc > 0) {
+        trip.miscCost = (trip.miscCost || 0) + extraMisc;
+      }
+
+      saveTrips(trips);
+      renderTripsTable();
+      renderActiveTrips();
+
+      // After update, show full trip details
+      loadTripIntoForm(currentUpdateTripCode);
+      alert("Trip updated.");
+    });
+
+    // Edit full trip button on update page
+    updateEditFullBtn.addEventListener("click", () => {
+      if (!currentUpdateTripCode) return;
+      loadTripIntoForm(currentUpdateTripCode);
+    });
+
+    // Cancel on update page
+    updateCancelBtn.addEventListener("click", () => {
+      showHome();
+    });
+	// Load trips from server into localStorage
+async function fetchTripsFromServer() {
+  try {
+    const res = await fetch(API_BASE + "/trips");
+    const data = await res.json();
+    if (Array.isArray(data)) {
+      localStorage.setItem("trips", JSON.stringify(data));
+    }
+  } catch (err) {
+    console.error("Failed to load trips from server", err);
+  }
+}
+
+
+// Initial load
+(async function init() {
+  // First load trips from server into localStorage
+  await fetchTripsFromServer();
+
+  const existing = getStoredTrips();
+  existing.forEach(t => {
+    if (t.tripCode) usedTripCodes.add(t.tripCode);
+  });
+  renderTripsTable();
+  renderActiveTrips();
+})();
+
+  </script>
+</body>
+</html>
