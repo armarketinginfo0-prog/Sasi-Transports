@@ -1,0 +1,5 @@
+{
+  "routes": [
+    { "src": "/(.*)", "dest": "/$1", "middleware": "middleware.js" }
+  ]
+}
