@@ -6,17 +6,23 @@
   <title>Sasi Kumar Transports — Trip Manager</title>
   <style>
     :root {
-      --bg: #f3f4f6;
-      --card-bg: #ffffff;
+      --bg: #020617;
+      --bg-soft: #0f172a;
+      --card-bg: #0b1220;
+      --card-bg-soft: #020617;
       --primary: #2563eb;
-      --primary-soft: #dbeafe;
-      --text-main: #111827;
-      --text-muted: #6b7280;
-      --border: #e5e7eb;
-      --danger: #b91c1c;
-      --success: #15803d;
-      --radius: 12px;
-      --shadow-soft: 0 10px 30px rgba(15, 23, 42, 0.08);
+      --primary-soft: #1d4ed8;
+      --primary-soft-strong: #60a5fa;
+      --text-main: #e5e7eb;
+      --text-muted: #9ca3af;
+      --border: #1f2937;
+      --danger: #f87171;
+      --danger-soft: rgba(248, 113, 113, 0.08);
+      --success: #34d399;
+      --success-soft: rgba(52, 211, 153, 0.08);
+      --warning-soft: rgba(251, 191, 36, 0.08);
+      --radius: 14px;
+      --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.5);
     }
 
     * {
@@ -27,15 +33,33 @@
     }
 
     body {
-      background: radial-gradient(circle at top left, #e0f2fe, #f9fafb);
+      background:
+        radial-gradient(circle at top, rgba(56, 189, 248, 0.18), transparent 55%),
+        radial-gradient(circle at bottom, rgba(59, 130, 246, 0.2), transparent 60%),
+        linear-gradient(to bottom, #020617, #020617);
       color: var(--text-main);
       min-height: 100vh;
-      padding: 16px;
+      padding: 18px 12px 32px;
     }
 
     .page {
       max-width: 1200px;
       margin: 0 auto;
+    }
+
+    /* Simple fade / slide animation */
+    .fade-in {
+      animation: fadeInUp 0.4s ease-out;
+    }
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     /* NAV BAR */
@@ -47,9 +71,13 @@
       margin-bottom: 18px;
       padding: 10px 16px;
       border-radius: 999px;
-      background: #ffffff;
-      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
-      border: 1px solid rgba(15, 23, 42, 0.04);
+      background: radial-gradient(circle at top left, #1e293b, #020617);
+      box-shadow: 0 18px 50px rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      position: sticky;
+      top: 8px;
+      z-index: 20;
+      backdrop-filter: blur(16px);
     }
 
     .header-left {
@@ -59,9 +87,9 @@
     }
 
     header h1 {
-      font-size: 1.3rem;
+      font-size: 1.4rem;
       font-weight: 700;
-      letter-spacing: 0.02em;
+      letter-spacing: 0.03em;
     }
 
     header p {
@@ -73,6 +101,7 @@
       display: flex;
       gap: 8px;
       align-items: center;
+      flex-wrap: wrap;
     }
 
     .layout {
@@ -89,11 +118,35 @@
     }
 
     .card {
-      background: var(--card-bg);
+      background: radial-gradient(circle at top left, rgba(37, 99, 235, 0.16), transparent 60%),
+                  linear-gradient(145deg, var(--card-bg), var(--card-bg-soft));
       border-radius: var(--radius);
       box-shadow: var(--shadow-soft);
       padding: 16px 18px;
-      border: 1px solid rgba(15, 23, 42, 0.03);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.16), transparent 60%);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .card.hover-card:hover::before {
+      opacity: 1;
+    }
+
+    .card.hover-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 22px 55px rgba(15, 23, 42, 0.7);
+      border-color: rgba(129, 140, 248, 0.7);
     }
 
     .form-card {
@@ -124,11 +177,12 @@
       font-size: 0.7rem;
       padding: 2px 8px;
       border-radius: 999px;
-      background: var(--primary-soft);
-      color: var(--primary);
+      background: rgba(37, 99, 235, 0.14);
+      color: #bfdbfe;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.08em;
       font-weight: 600;
+      border: 1px solid rgba(129, 140, 248, 0.5);
     }
 
     form {
@@ -138,12 +192,13 @@
     }
 
     .section-title {
-      font-size: 0.85rem;
+      font-size: 0.78rem;
       font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.14em;
       color: var(--text-muted);
       margin: 4px 0 4px;
+      opacity: 0.9;
     }
 
     .field-group {
@@ -170,24 +225,41 @@
       padding: 9px 12px;
       font-size: 0.9rem;
       outline: none;
-      transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
-      background: #f9fafb;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease, transform 0.08s ease;
+      background: rgba(15, 23, 42, 0.95);
+      color: var(--text-main);
       width: 100%;
     }
 
+    input::placeholder,
+    textarea::placeholder {
+      color: #6b7280;
+    }
+
     input:focus, select:focus, textarea:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
-      background: #ffffff;
+      border-color: #60a5fa;
+      box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.45);
+      background: #020617;
+      transform: translateY(-0.5px);
     }
 
     input[type="date"] {
       padding-inline: 10px;
     }
 
+    select {
+      cursor: pointer;
+      background-image: linear-gradient(45deg, transparent 50%, #9ca3af 50%),
+                        linear-gradient(135deg, #9ca3af 50%, transparent 50%);
+      background-position: calc(100% - 14px) 50%, calc(100% - 9px) 50%;
+      background-size: 5px 5px, 5px 5px;
+      background-repeat: no-repeat;
+    }
+
     input[readonly] {
-      background: #e5e7eb;
+      background: #020617;
       cursor: default;
+      opacity: 0.8;
     }
 
     .muted {
@@ -213,29 +285,56 @@
       align-items: center;
       gap: 6px;
       white-space: nowrap;
+      transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
     }
 
     .btn-primary {
-      background: linear-gradient(135deg, #2563eb, #1d4ed8);
-      color: #ffffff;
-      box-shadow: 0 8px 18px rgba(37, 99, 235, 0.35);
+      background-image: linear-gradient(135deg, #2563eb, #4f46e5);
+      color: #e5f0ff;
+      box-shadow: 0 12px 28px rgba(37, 99, 235, 0.55);
+      border: 1px solid rgba(191, 219, 254, 0.7);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 16px 38px rgba(37, 99, 235, 0.8);
+      background-image: linear-gradient(135deg, #1d4ed8, #4338ca);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+      box-shadow: 0 8px 20px rgba(37, 99, 235, 0.7);
     }
 
     .btn-ghost {
-      background: transparent;
+      background: rgba(15, 23, 42, 0.85);
       border: 1px solid var(--border);
       color: var(--text-muted);
     }
 
+    .btn-ghost:hover {
+      border-color: rgba(148, 163, 184, 0.8);
+      background: rgba(15, 23, 42, 0.9);
+      color: #e5e7eb;
+      transform: translateY(-1px);
+    }
+
     .btn-outline {
-      background: transparent;
-      border: 1px solid var(--primary);
-      color: var(--primary);
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid #60a5fa;
+      color: #bfdbfe;
+    }
+
+    .btn-outline:hover {
+      background: rgba(37, 99, 235, 0.18);
+      color: #e5f0ff;
+      transform: translateY(-1px);
     }
 
     .btn-small {
       padding: 4px 10px;
       font-size: 0.75rem;
+      border-radius: 999px;
     }
 
     .btn-large {
@@ -273,8 +372,8 @@
       font-size: 0.7rem;
       padding: 2px 8px;
       border-radius: 999px;
-      background: #f9fafb;
-      border: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.7);
       color: var(--text-muted);
     }
 
@@ -288,8 +387,8 @@
     .summary-item {
       border-radius: 10px;
       padding: 8px 10px;
-      background: #f9fafb;
-      border: 1px solid #e5e7eb;
+      background: radial-gradient(circle at top left, rgba(37, 99, 235, 0.18), transparent 60%);
+      border: 1px solid rgba(148, 163, 184, 0.35);
     }
 
     .summary-label {
@@ -314,7 +413,7 @@
     .summary-footer {
       margin-top: 8px;
       padding-top: 8px;
-      border-top: 1px dashed #e5e7eb;
+      border-top: 1px dashed rgba(148, 163, 184, 0.45);
       font-size: 0.78rem;
       color: var(--text-muted);
       display: flex;
@@ -337,8 +436,8 @@
       border-radius: 999px;
       padding: 2px 8px;
       font-size: 0.72rem;
-      border: 1px solid #e5e7eb;
-      background: #f9fafb;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      background: rgba(15, 23, 42, 0.9);
     }
 
     .badge-dot {
@@ -356,7 +455,7 @@
     }
 
     .badge-dot.pending {
-      background: #f59e0b;
+      background: #fbbf24;
     }
 
     .tip {
@@ -388,12 +487,14 @@
     .summary-small {
       opacity: 0.9;
       transform: scale(0.98);
+      transition: transform 0.2s ease, opacity 0.2s ease;
     }
 
     .summary-full {
       max-width: 900px;
       margin: 0 auto;
       transform: scale(1);
+      transition: transform 0.2s ease, opacity 0.2s ease;
     }
 
     .summary-full .summary-title {
@@ -420,39 +521,64 @@
     .table-wrapper {
       margin-top: 10px;
       overflow-x: auto;
+      border-radius: 12px;
+      border: 1px solid rgba(55, 65, 81, 0.7);
+      background: radial-gradient(circle at top left, rgba(15, 23, 42, 0.65), rgba(15, 23, 42, 0.98));
     }
 
     .trips-table {
       width: 100%;
       border-collapse: collapse;
       font-size: 0.95rem;
+      min-width: 900px;
     }
 
     .trips-table thead {
-      background: #eff6ff;
+      background: linear-gradient(to right, #111827, #020617);
     }
 
     .trips-table th,
     .trips-table td {
       padding: 8px 10px;
-      border-bottom: 1px solid #e5e7eb;
+      border-bottom: 1px solid rgba(55, 65, 81, 0.9);
       text-align: left;
       white-space: nowrap;
     }
 
     .trips-table th {
       font-weight: 600;
-      color: #374151;
+      color: #e5e7eb;
       font-size: 0.9rem;
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      backdrop-filter: blur(10px);
     }
 
     .trips-table td {
-      font-size: 0.95rem;
+      font-size: 0.9rem;
+      color: #e5e7eb;
     }
 
-    .trips-table tr:hover {
-      background: #eef2ff;
+    .trips-table tbody tr {
+      transition: background 0.12s ease, transform 0.08s ease;
+    }
+
+    .trips-table tbody tr:hover {
+      background: rgba(37, 99, 235, 0.22);
       cursor: pointer;
+      transform: translateY(-1px);
+    }
+
+    /* Row colour coding */
+    .trip-row.closed {
+      background-color: rgba(31, 41, 55, 0.85);
+    }
+    .trip-row.loss {
+      background-color: var(--danger-soft);
+    }
+    .trip-row.profit {
+      background-color: var(--success-soft);
     }
 
     /* Mode screen */
@@ -488,12 +614,13 @@
       }
     }
 
-    /* History search */
+    /* History header controls */
     .history-header-right {
       display: flex;
       align-items: center;
       gap: 8px;
       flex-wrap: wrap;
+      justify-content: flex-end;
     }
 
     .history-search-input {
@@ -507,7 +634,46 @@
       font-size: 0.85rem;
     }
 
-    /* Status dot */
+    .history-date-filters {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .history-date-filters input[type="date"] {
+      border-radius: 999px;
+      padding: 4px 8px;
+      font-size: 0.78rem;
+    }
+
+    .history-summary-bar {
+      margin-top: 6px;
+      margin-bottom: 4px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: radial-gradient(circle at left, rgba(37, 99, 235, 0.3), rgba(15, 23, 42, 0.95));
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-size: 0.8rem;
+      color: #e5e7eb;
+      justify-content: space-between;
+      border: 1px solid rgba(37, 99, 235, 0.6);
+    }
+
+    .history-summary-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 10px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(156, 163, 175, 0.7);
+    }
+
+    /* Status dot + chip */
     .status-dot {
       width: 12px;
       height: 12px;
@@ -516,15 +682,41 @@
     }
 
     .status-dot.active {
-      background: #16a34a;
+      background: #22c55e;
     }
 
     .status-dot.closed {
-      background: #9ca3af;
+      background: #6b7280;
     }
 
     .status-dot.loss {
-      background: #b91c1c;
+      background: #f97373;
+    }
+
+    .status-chip {
+      margin-left: 6px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      border: 1px solid #4b5563;
+      background: rgba(15, 23, 42, 0.95);
+      color: #e5e7eb;
+    }
+
+    .status-chip.closed {
+      background: rgba(31, 41, 55, 0.95);
+      color: #d1d5db;
+      border-color: #6b7280;
+    }
+    .status-chip.loss {
+      background: rgba(248, 113, 113, 0.18);
+      color: #fecaca;
+      border-color: rgba(248, 113, 113, 0.6);
+    }
+    .status-chip.active {
+      background: rgba(22, 163, 74, 0.2);
+      color: #bbf7d0;
+      border-color: rgba(22, 163, 74, 0.6);
     }
 
     /* Active trips card */
@@ -544,8 +736,8 @@
       justify-content: space-between;
       align-items: center;
       gap: 8px;
-      padding: 6px 0;
-      border-bottom: 1px dashed #e5e7eb;
+      padding: 8px 0;
+      border-bottom: 1px dashed rgba(55, 65, 81, 0.7);
       font-size: 0.9rem;
     }
 
@@ -570,6 +762,82 @@
       color: var(--text-muted);
     }
 
+    .active-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 6px;
+      margin-top: -4px;
+    }
+
+    .filter-pill {
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid #374151;
+      background: rgba(15, 23, 42, 0.95);
+      font-size: 0.75rem;
+      cursor: pointer;
+      color: #e5e7eb;
+      transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease, transform 0.1s ease;
+    }
+
+    .filter-pill:hover {
+      border-color: #60a5fa;
+      transform: translateY(-0.5px);
+    }
+
+    .filter-pill.active {
+      background: linear-gradient(to right, #2563eb, #4f46e5);
+      border-color: #93c5fd;
+      color: #e5f0ff;
+    }
+
+    /* Vehicle summary card */
+    .vehicle-summary-grid {
+      display: grid;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    @media (min-width: 700px) {
+      .vehicle-summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    .vehicle-card {
+      border-radius: 10px;
+      padding: 8px 10px;
+      background: radial-gradient(circle at top left, rgba(59, 130, 246, 0.4), rgba(15, 23, 42, 0.98));
+      border: 1px solid rgba(129, 140, 248, 0.7);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 0.8rem;
+    }
+
+    .vehicle-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+    }
+
+    .vehicle-card-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 2px;
+    }
+
+    .vehicle-pill {
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.96);
+      border: 1px solid rgba(148, 163, 184, 0.8);
+      font-size: 0.7rem;
+    }
+
     /* Update page (transactions) */
     .update-layout {
       max-width: 900px;
@@ -584,8 +852,8 @@
     @media(min-width:900px){ .txns-grid{grid-template-columns:repeat(2,minmax(0,1fr))} }
 
     .category-block {
-      border: 1px solid #eef2ff;
-      background: linear-gradient(180deg,#fff,#fbfdff);
+      border: 1px solid rgba(129, 140, 248, 0.5);
+      background: radial-gradient(circle at top left, rgba(59, 130, 246, 0.2), rgba(15, 23, 42, 0.98));
       padding: 10px;
       border-radius: 10px;
     }
@@ -593,9 +861,9 @@
     .category-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
     .category-total{font-weight:700;color:var(--text-main)}
     .txn-list{margin-top:8px;display:flex;flex-direction:column;gap:6px}
-    .txn-row{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:8px;border-radius:8px;background:#fff;border:1px solid #eef6ff}
+    .txn-row{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:8px;border-radius:8px;background:#020617;border:1px solid #1f2937}
     .txn-meta{font-size:0.92rem;color:var(--text-muted)}
-    .txn-actions button{border-radius:8px;padding:6px 8px;border:1px solid #e6e7eb;background:transparent;cursor:pointer}
+    .txn-actions button{border-radius:8px;padding:6px 8px;border:1px solid #4b5563;background:transparent;cursor:pointer}
 
     .small-inputs{display:flex;gap:8px;align-items:center}
     .small-inputs input[type="number"]{width:110px;border-radius:8px}
@@ -615,17 +883,18 @@
       gap: 8px;
     }
     .toast {
-      background: rgba(17,24,39,0.98);
-      color: #fff;
+      background: rgba(15, 23, 42, 0.98);
+      color: #e5e7eb;
       padding: 10px 14px;
       border-radius: 10px;
-      box-shadow: 0 8px 24px rgba(15,23,42,0.2);
+      box-shadow: 0 8px 24px rgba(15,23,42,0.8);
       min-width: 220px;
       font-size: 0.95rem;
+      border: 1px solid rgba(55, 65, 81, 0.9);
     }
-    .toast.success { background: linear-gradient(90deg,#065f46,#10b981); }
-    .toast.error { background: linear-gradient(90deg,#7f1d1d,#ef4444); }
-    .toast.info { background: linear-gradient(90deg,#0f172a,#1e293b); }
+    .toast.success { background: linear-gradient(90deg,#047857,#22c55e); }
+    .toast.error { background: linear-gradient(90deg,#b91c1c,#f97373); }
+    .toast.info { background: linear-gradient(90deg,#0f172a,#1f2937); }
 
     /* small file input style */
     .file-input {
@@ -638,7 +907,7 @@
   </style>
 </head>
 <body>
-  <div class="page">
+  <div class="page fade-in">
     <!-- NAV BAR -->
     <header>
       <div class="header-left">
@@ -658,8 +927,8 @@
       </div>
     </header>
 
-    <!-- HOME: New Trip / View history + Active trip list -->
-    <div class="card mode-card" id="modeScreen">
+    <!-- HOME: New Trip / View history + Active trip list + Vehicle summary -->
+    <div class="card mode-card hover-card" id="modeScreen">
       <div class="mode-title">What do you want to do?</div>
       <div class="mode-subtitle">Choose an option below to get started.</div>
       <div class="mode-actions">
@@ -672,11 +941,28 @@
       </div>
 
       <!-- Active trip list on home -->
-      <div class="card active-card" id="activeTripsCard">
+      <div class="card active-card hover-card" id="activeTripsCard">
         <div class="card-header" style="margin-bottom:6px;">
-          <h2>Active trip</h2>
+          <h2>Active trips</h2>
+        </div>
+        <div class="active-filters" id="activeVehicleFilters">
+          <button class="filter-pill active" data-vehicle="">All</button>
+          <button class="filter-pill" data-vehicle="TN 52 Af 0913.con">TN 52 Af 0913.con</button>
+          <button class="filter-pill" data-vehicle="TN 54 AA 7528">TN 54 AA 7528</button>
+          <button class="filter-pill" data-vehicle="TN 47 AQ 4046">TN 47 AQ 4046</button>
+          <button class="filter-pill" data-vehicle="TN 09 CZ 3667">TN 09 CZ 3667</button>
         </div>
         <div class="active-list" id="activeTripsBody">
+          <!-- Filled by JS -->
+        </div>
+      </div>
+
+      <!-- Vehicle summary on home -->
+      <div class="card active-card hover-card" id="vehicleSummaryCard">
+        <div class="card-header" style="margin-bottom:6px;">
+          <h2>Vehicle summary</h2>
+        </div>
+        <div class="vehicle-summary-grid" id="vehicleSummaryBody">
           <!-- Filled by JS -->
         </div>
       </div>
@@ -685,7 +971,7 @@
     <!-- MAIN LAYOUT (New Trip mode: form + summary) -->
     <div class="layout hidden" id="mainLayout">
       <!-- LEFT: BIG FORM -->
-      <div class="card form-card" id="formCard">
+      <div class="card form-card hover-card" id="formCard">
         <div class="card-header">
           <h2>
             Trip Entry
@@ -711,6 +997,16 @@
               <div class="input-group">
                 <label for="startDate">Start date</label>
                 <input type="date" id="startDate" required />
+              </div>
+              <div class="input-group">
+                <label for="vehicle">Vehicle</label>
+                <select id="vehicle" required>
+                  <option value="">Select vehicle</option>
+                  <option value="TN 52 Af 0913.con">TN 52 Af 0913.con</option>
+                  <option value="TN 54 AA 7528">TN 54 AA 7528</option>
+                  <option value="TN 47 AQ 4046">TN 47 AQ 4046</option>
+                  <option value="TN 09 CZ 3667">TN 09 CZ 3667</option>
+                </select>
               </div>
             </div>
 
@@ -775,7 +1071,7 @@
 
       <!-- RIGHT: SUMMARY -->
       <div class="summary-card-wrapper" id="summaryWrapper">
-        <div class="card summary-card summary-small" id="summaryCard">
+        <div class="card summary-card summary-small hover-card" id="summaryCard">
           <div class="summary-header">
             <div>
               <div class="summary-title">Trip Summary</div>
@@ -793,6 +1089,10 @@
               <div class="summary-item">
                 <div class="summary-label">Trip code</div>
                 <div class="summary-value" id="tripCodeDisplay">—</div>
+              </div>
+              <div class="summary-item">
+                <div class="summary-label">Vehicle</div>
+                <div class="summary-value" id="vehicleDisplay">—</div>
               </div>
               <div class="summary-item">
                 <div class="summary-label">Route</div>
@@ -856,7 +1156,7 @@
     </div>
 
     <!-- UPDATE PAGE (Incremental) -->
-    <div class="card hidden" id="updateCard">
+    <div class="card hidden hover-card" id="updateCard">
       <div class="update-layout">
         <div class="card-header">
           <h2>Update Trip (Add new payments & expenses)</h2>
@@ -883,7 +1183,7 @@
     </div>
 
     <!-- SAVED TRIPS LIST (View history) -->
-    <div class="card hidden" id="tripsListCard" style="margin-top:16px;">
+    <div class="card hidden hover-card" id="tripsListCard" style="margin-top:16px;">
       <div class="card-header">
         <h2>Saved Trips (this device)</h2>
         <div class="history-header-right">
@@ -894,8 +1194,26 @@
               placeholder="Search by trip code, from, to..."
             />
           </div>
+          <div class="history-date-filters">
+            <input type="date" id="historyFromDate" />
+            <span>to</span>
+            <input type="date" id="historyToDate" />
+          </div>
+          <select id="vehicleFilter">
+            <option value="">All vehicles</option>
+            <option value="TN 52 Af 0913.con">TN 52 Af 0913.con</option>
+            <option value="TN 54 AA 7528">TN 54 AA 7528</option>
+            <option value="TN 47 AQ 4046">TN 47 AQ 4046</option>
+            <option value="TN 09 CZ 3667">TN 09 CZ 3667</option>
+          </select>
           <button class="btn-outline" id="historyNewTripBtn">➕ New Trip</button>
         </div>
+      </div>
+      <div class="history-summary-bar" id="historySummaryBar">
+        <span class="history-summary-pill" id="summaryTripsCount">Trips: 0</span>
+        <span class="history-summary-pill" id="summaryTotalBilled">Total billed: ₹0</span>
+        <span class="history-summary-pill" id="summaryTotalProfit">Est. profit: ₹0</span>
+        <span class="history-summary-pill" id="summaryTotalPending">Pending: ₹0</span>
       </div>
       <div class="table-wrapper">
         <table class="trips-table">
@@ -904,6 +1222,7 @@
               <th>Status</th>
               <th>Trip Code</th>
               <th>Route</th>
+              <th>Vehicle</th>
               <th>Start Date</th>
               <th>Total Cost</th>
               <th>Est. Cost</th>
@@ -1006,6 +1325,14 @@
     function uid(prefix = "") {
       return prefix + Date.now().toString(36) + "-" + Math.floor(Math.random()*10000).toString(36);
     }
+
+    // Known vehicles (for summary etc.)
+    const VEHICLES = [
+      "TN 52 Af 0913.con",
+      "TN 54 AA 7528",
+      "TN 47 AQ 4046",
+      "TN 09 CZ 3667"
+    ];
 
     // ---------- API SETTINGS ----------
     // By default same origin. Set to your API base if different.
@@ -1153,6 +1480,151 @@
       }
     }
 
+    // ---------- Safe fetch + merge (silent on network) ----------
+    async function fetchTripsFromServer() {
+      if (!API_BASE) {
+        return;
+      }
+      try {
+        const res = await fetch(API_BASE + "/trips");
+        if (!res.ok) {
+          console.warn("fetchTripsFromServer: status", res.status);
+          return;
+        }
+        const serverTrips = await res.json();
+        if (!Array.isArray(serverTrips)) {
+          console.warn("Unexpected server response for /trips", serverTrips);
+          return;
+        }
+        const local = getStoredTrips();
+        const map = new Map(local.map(t => [t.tripCode, t]));
+        serverTrips.forEach(st => { if (!st.tripCode) return; st.syncStatus = "ok"; map.set(st.tripCode, st); });
+        const merged = Array.from(map.values());
+        saveTrips(merged);
+        showToast("Fetched trips from server.", "success");
+        // UI render functions defined later
+        renderTripsTable?.();
+        renderActiveTrips?.();
+        renderVehicleSummary?.();
+      } catch (err) {
+        console.warn("Silent fetch error:", err);
+      }
+    }
+
+    // ---------- CSV export / import (includes transactions & payments & vehicle) ----------
+    function csvEscape(v) {
+      if (v === null || v === undefined) return "";
+      const s = String(v);
+      if (s.includes(",") || s.includes('"') || s.includes("\n")) {
+        return '"' + s.replaceAll('"', '""') + '"';
+      }
+      return s;
+    }
+
+    function exportCsv() {
+      const trips = getStoredTrips();
+      if (!trips.length) { showToast("No trips to export.", "info"); return; }
+      const headers = [
+        "tripCode",
+        "startDate",
+        "routeFrom",
+        "routeTo",
+        "vehicle",
+        "totalTransportCost",
+        "estimatedTripCost",
+        "estimatedProfit",
+        "advancePaid",
+        "advancePaidDate",
+        "pendingFromClient",
+        "amountUsed",
+        "amountLeft",
+        "status",
+        "lastUpdated",
+        "transactions_json",
+        "payments_json"
+      ];
+      const rows = trips.map(t => {
+        const txnsJson = JSON.stringify(t.transactions || {});
+        const paysJson = JSON.stringify(t.payments || []);
+        const amountUsed = calculateAmountUsed(t);
+        const amountLeft = calculateAmountLeft(t);
+        return headers.map(h =>
+          csvEscape(
+            h === "transactions_json"
+              ? txnsJson
+              : h === "payments_json"
+              ? paysJson
+              : h === "amountUsed"
+              ? amountUsed
+              : h === "amountLeft"
+              ? amountLeft
+              : t[h]
+          )
+        ).join(",");
+      });
+      const csv = [headers.join(","), ...rows].join("\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `trips_export_${todayISO()}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      showToast("Exported CSV.", "success");
+    }
+
+    function parseCsvLine(line) {
+      const res = [];
+      let cur = "";
+      let inQuotes = false;
+      for (let i=0;i<line.length;i++){
+        const ch = line[i];
+        if (inQuotes) {
+          if (ch === '"') {
+            if (line[i+1] === '"') { cur += '"'; i++; } else inQuotes = false;
+          } else cur += ch;
+        } else {
+          if (ch === ',') { res.push(cur); cur = ""; } else if (ch === '"') { inQuotes = true; } else cur += ch;
+        }
+      }
+      res.push(cur);
+      return res;
+    }
+
+    function importCsv(text) {
+      const lines = text.split(/\r?\n/).filter(Boolean);
+      if (!lines.length) { showToast("CSV empty.", "error"); return; }
+      const header = parseCsvLine(lines[0]);
+      const rows = lines.slice(1).map(l => parseCsvLine(l));
+      const items = rows.map(r => {
+        const obj = {};
+        for (let i=0;i<header.length;i++){ const key = header[i]; obj[key] = r[i] ?? ""; }
+        obj.totalTransportCost = toNumber(obj.totalTransportCost);
+        obj.estimatedTripCost = toNumber(obj.estimatedTripCost);
+        obj.estimatedProfit = toNumber(obj.estimatedProfit);
+        obj.advancePaid = toNumber(obj.advancePaid);
+        obj.pendingFromClient = toNumber(obj.pendingFromClient);
+        obj.lastUpdated = obj.lastUpdated || new Date().toISOString();
+        try { obj.transactions = obj.transactions_json ? JSON.parse(obj.transactions_json) : {}; } catch { obj.transactions = {}; }
+        try { obj.payments = obj.payments_json ? JSON.parse(obj.payments_json) : []; } catch { obj.payments = []; }
+        if (!obj.tripCode) obj.tripCode = generateTripCode(obj.startDate || todayISO());
+        return obj;
+      });
+      const local = getStoredTrips();
+      const map = new Map(local.map(t => [t.tripCode, t]));
+      items.forEach(it => map.set(it.tripCode, it));
+      const merged = Array.from(map.values());
+      saveTrips(merged);
+      // UI render functions defined later
+      renderTripsTable?.();
+      renderActiveTrips?.();
+      renderVehicleSummary?.();
+      showToast("Imported CSV and merged trips.", "success");
+    }
+
+    // ---------- Trip code ---------- (unchanged)
     // ---------- Trip code ---------- (unchanged)
     const usedTripCodes = new Set();
     function generateTripCode(startDate) {
@@ -1169,8 +1641,11 @@
       return code;
     }
 
-    // ---------- DOM refs ----------
+    // ---------- DOM refs + state ----------
     let currentUpdateTripCode = null;
+    let activeVehicleFilterValue = "";   // for Home active trips
+    let formDirty = false;               // unsaved changes
+
     const modeScreen = document.getElementById("modeScreen");
     const modeNewTripBtn = document.getElementById("modeNewTripBtn");
     const modeViewHistoryBtn = document.getElementById("modeViewHistoryBtn");
@@ -1188,6 +1663,14 @@
     const advancePaidInput = document.getElementById("advancePaid");
     const advanceDateGroup = document.getElementById("advanceDateGroup");
     const tripCodeInput = document.getElementById("tripCode");
+    const routeFromInput = document.getElementById("routeFrom");
+    const routeToInput = document.getElementById("routeTo");
+    const startDateInput = document.getElementById("startDate");
+    const vehicleInput = document.getElementById("vehicle");
+    const totalCostInput = document.getElementById("totalCost");
+    const estimatedCostInput = document.getElementById("estimatedCost");
+    const advancePaidDateInput = document.getElementById("advancePaidDate");
+
     const formCard = document.getElementById("formCard");
     const summaryCard = document.getElementById("summaryCard");
     const summaryContent = document.getElementById("summaryContent");
@@ -1196,11 +1679,25 @@
     const newTripBtn = document.getElementById("newTripBtn");
     const editTripBtn = document.getElementById("editTripBtn");
     const summarySaveBtn = document.getElementById("summarySaveBtn");
+    const summaryStatusEl = document.getElementById("summaryStatus");
+    const summaryTitleEl = document.getElementById("summaryTitle");
+
     const tripsListCard = document.getElementById("tripsListCard");
     const historyNewTripBtn = document.getElementById("historyNewTripBtn");
     const tripsTableBody = document.getElementById("tripsTableBody");
     const historySearch = document.getElementById("historySearch");
+    const historyFromDate = document.getElementById("historyFromDate");
+    const historyToDate = document.getElementById("historyToDate");
+    const vehicleFilter = document.getElementById("vehicleFilter");
+
+    const summaryTripsCount = document.getElementById("summaryTripsCount");
+    const summaryTotalBilled = document.getElementById("summaryTotalBilled");
+    const summaryTotalProfit = document.getElementById("summaryTotalProfit");
+    const summaryTotalPending = document.getElementById("summaryTotalPending");
+
     const activeTripsBody = document.getElementById("activeTripsBody");
+    const activeVehicleFilters = document.getElementById("activeVehicleFilters");
+    const vehicleSummaryBody = document.getElementById("vehicleSummaryBody");
 
     const updateCard = document.getElementById("updateCard");
     const updateTripCodeTag = document.getElementById("updateTripCodeTag");
@@ -1213,10 +1710,35 @@
 
     const exportCsvBtn = document.getElementById("exportCsvBtn");
     const importCsvInput = document.getElementById("importCsvInput");
+    const tripForm = document.getElementById("tripForm");
+
+    // ---------- Unsaved changes helper ----------
+    function markFormDirty() {
+      // Only mark dirty when main form is visible
+      if (!mainLayout.classList.contains("hidden")) {
+        formDirty = true;
+      }
+    }
+
+    function clearFormDirty() {
+      formDirty = false;
+    }
+
+    function guardLeaveForm() {
+      if (!mainLayout.classList.contains("hidden")) {
+        if (formDirty) {
+          const ok = confirm("You have unsaved changes in this trip. Leave without saving?");
+          if (!ok) return false;
+          formDirty = false;
+        }
+      }
+      return true;
+    }
 
     // ---------- Summary reset ----------
     function resetSummary() {
       document.getElementById("tripCodeDisplay").textContent = "—";
+      document.getElementById("vehicleDisplay").textContent = "—";
       document.getElementById("routeDisplay").textContent = "—";
       document.getElementById("startDateDisplay").textContent = "—";
       document.getElementById("totalCostDisplay").textContent = "₹0";
@@ -1225,8 +1747,8 @@
       document.getElementById("advanceDisplay").textContent = "₹0";
       document.getElementById("pendingDisplay").textContent = "₹0";
       document.getElementById("advanceDateDisplay").textContent = "—";
-      document.getElementById("summaryStatus").textContent = "Preview";
-      document.getElementById("summaryTitle").textContent = "Fill the form to see totals.";
+      summaryStatusEl.textContent = "Preview";
+      summaryTitleEl.textContent = "Fill the form to see totals.";
       document.getElementById("profitBadgeText").textContent = "No profit data yet";
       document.getElementById("pendingBadgeText").textContent = "No pending amount yet";
       document.getElementById("profitDisplay").classList.remove("positive", "negative");
@@ -1240,14 +1762,72 @@
       summaryContent.classList.remove("hidden");
     }
 
+    // ---------- Vehicle summary ----------
+    function renderVehicleSummary() {
+      const trips = getStoredTrips();
+      vehicleSummaryBody.innerHTML = "";
+
+      VEHICLES.forEach(vehicle => {
+        const vt = trips.filter(t => (t.vehicle || "") === vehicle);
+        const tripCount = vt.length;
+        const activeCount = vt.filter(t => (t.status || "active") !== "closed").length;
+        const totalBilled = vt.reduce((s, t) => s + toNumber(t.totalTransportCost || 0), 0);
+        const totalProfit = vt.reduce((s, t) => s + toNumber(t.estimatedProfit || 0), 0);
+
+        const card = document.createElement("div");
+        card.className = "vehicle-card";
+
+        const header = document.createElement("div");
+        header.className = "vehicle-card-header";
+        const title = document.createElement("div");
+        title.textContent = vehicle;
+        const tripsTag = document.createElement("div");
+        tripsTag.textContent = `${tripCount} trip${tripCount === 1 ? "" : "s"}`;
+        tripsTag.style.fontSize = "0.75rem";
+        tripsTag.style.color = "#cbd5f5";
+        header.appendChild(title);
+        header.appendChild(tripsTag);
+
+        const meta = document.createElement("div");
+        meta.className = "vehicle-card-meta";
+
+        const activePill = document.createElement("span");
+        activePill.className = "vehicle-pill";
+        activePill.textContent = `Active: ${activeCount}`;
+
+        const billedPill = document.createElement("span");
+        billedPill.className = "vehicle-pill";
+        billedPill.textContent = `Billed: ${formatCurrency(totalBilled)}`;
+
+        const profitPill = document.createElement("span");
+        profitPill.className = "vehicle-pill";
+        profitPill.textContent = `Est. profit: ${formatCurrency(totalProfit)}`;
+
+        meta.appendChild(activePill);
+        meta.appendChild(billedPill);
+        meta.appendChild(profitPill);
+
+        card.appendChild(header);
+        card.appendChild(meta);
+
+        vehicleSummaryBody.appendChild(card);
+      });
+    }
+
     // ---------- Render active trips ----------
     function renderActiveTrips() {
       const trips = getStoredTrips().filter(
         t => (t.status || "active") !== "closed"
       );
+
       activeTripsBody.innerHTML = "";
 
-      if (!trips.length) {
+      let filtered = trips;
+      if (activeVehicleFilterValue) {
+        filtered = trips.filter(t => (t.vehicle || "") === activeVehicleFilterValue);
+      }
+
+      if (!filtered.length) {
         const p = document.createElement("p");
         p.className = "muted";
         p.textContent = "No active trips.";
@@ -1255,7 +1835,7 @@
         return;
       }
 
-      trips.forEach(trip => {
+      filtered.forEach(trip => {
         if (trip.tripCode) usedTripCodes.add(trip.tripCode);
 
         const item = document.createElement("div");
@@ -1281,9 +1861,13 @@
 
         const meta = document.createElement("div");
         meta.className = "active-item-meta";
-        meta.textContent = trip.startDate
+        let metaText = trip.startDate
           ? "Start: " + trip.startDate
           : "No start date";
+        if (trip.vehicle) {
+          metaText += " • Vehicle: " + trip.vehicle;
+        }
+        meta.textContent = metaText;
 
         textWrap.appendChild(routeText);
         textWrap.appendChild(meta);
@@ -1321,30 +1905,59 @@
       });
     }
 
-    // ---------- Render trips table (updated to include Amount Used & Amount Left) ----------
+    // ---------- History filters helper ----------
+    function tripMatchesFilters(trip, q, vFilter, fromDate, toDate) {
+      const code = (trip.tripCode || "").toLowerCase();
+      const from = (trip.routeFrom || "").toLowerCase();
+      const to = (trip.routeTo || "").toLowerCase();
+
+      if (q && !(code.includes(q) || from.includes(q) || to.includes(q))) {
+        return false;
+      }
+
+      if (vFilter && (trip.vehicle || "") !== vFilter) {
+        return false;
+      }
+
+      const sd = (trip.startDate || "").slice(0,10); // yyyy-mm-dd
+      if (fromDate && sd && sd < fromDate) return false;
+      if (toDate && sd && sd > toDate) return false;
+
+      return true;
+    }
+
+    // ---------- Render trips table + summary bar ----------
     function renderTripsTable() {
       const q = (historySearch.value || "").trim().toLowerCase();
+      const vFilter = (vehicleFilter && vehicleFilter.value) || "";
+      const fromDate = historyFromDate.value || "";
+      const toDate = historyToDate.value || "";
+
       const trips = getStoredTrips();
       tripsTableBody.innerHTML = "";
 
-      let filtered = trips;
-      if (q) {
-        filtered = trips.filter(t => {
-          const code = (t.tripCode || "").toLowerCase();
-          const from = (t.routeFrom || "").toLowerCase();
-          const to = (t.routeTo || "").toLowerCase();
-          return code.includes(q) || from.includes(q) || to.includes(q);
-        });
-      }
+      let filtered = trips.filter(t => tripMatchesFilters(t, q, vFilter, fromDate, toDate));
+
+      // Summary bar calculations
+      const tripsCount = filtered.length;
+      const totalBilled = filtered.reduce((s, t) => s + toNumber(t.totalTransportCost || 0), 0);
+      const totalProfit = filtered.reduce((s, t) => s + toNumber(t.estimatedProfit || 0), 0);
+      const totalPending = filtered.reduce((s, t) => s + toNumber(t.pendingFromClient || 0), 0);
+
+      summaryTripsCount.textContent = `Trips: ${tripsCount}`;
+      summaryTotalBilled.textContent = `Total billed: ${formatCurrency(totalBilled)}`;
+      summaryTotalProfit.textContent = `Est. profit: ${formatCurrency(totalProfit)}`;
+      summaryTotalPending.textContent = `Pending: ${formatCurrency(totalPending)}`;
 
       if (!filtered.length) {
         const row = document.createElement("tr");
         const cell = document.createElement("td");
-        // updated colspan to match new column count (11)
-        cell.colSpan = 11;
-        cell.textContent = q ? "No trips match your search." : "No trips saved yet.";
+        cell.colSpan = 12;
+        cell.textContent = q || vFilter || fromDate || toDate
+          ? "No trips match your filters."
+          : "No trips saved yet.";
         cell.style.fontSize = "0.9rem";
-        cell.style.color = "#6b7280";
+        cell.style.color = "#9ca3af";
         row.appendChild(cell);
         tripsTableBody.appendChild(row);
         return;
@@ -1355,20 +1968,41 @@
 
         const row = document.createElement("tr");
         row.dataset.tripCode = trip.tripCode;
+        row.classList.add("trip-row");
+
+        const status = trip.status || "active";
+        const isLoss = (trip.estimatedProfit || 0) < 0;
+        const isProfit = (trip.estimatedProfit || 0) > 0;
+
+        if (status === "closed") {
+          row.classList.add("closed");
+        } else if (isLoss) {
+          row.classList.add("loss");
+        } else if (isProfit) {
+          row.classList.add("profit");
+        }
 
         // Status cell
         const statusTd = document.createElement("td");
         const dot = document.createElement("span");
-        const status = trip.status || "active";
         let statusClass;
         if (status === "closed") statusClass = "closed";
-        else if ((trip.estimatedProfit || 0) < 0) statusClass = "loss";
+        else if (isLoss) statusClass = "loss";
         else statusClass = "active";
         dot.className = "status-dot " + statusClass;
+
+        const chip = document.createElement("span");
+        chip.className = "status-chip " + statusClass;
+        if (status === "closed") chip.textContent = "Closed";
+        else if (isLoss) chip.textContent = "Loss trip";
+        else chip.textContent = "Active";
+
         statusTd.appendChild(dot);
+        statusTd.appendChild(chip);
         row.appendChild(statusTd);
 
         const routeText = `${(trip.routeFrom||"")} → ${(trip.routeTo||"")}`;
+        const vehicle = trip.vehicle || "";
 
         // compute amount used & left
         const used = calculateAmountUsed(trip);
@@ -1377,6 +2011,7 @@
         const cells = [
           trip.tripCode,
           routeText,
+          vehicle,
           trip.startDate || "",
           formatCurrency(trip.totalTransportCost || 0),
           formatCurrency(trip.estimatedTripCost || 0),
@@ -1386,7 +2021,6 @@
           formatCurrency(trip.pendingFromClient || 0)
         ];
 
-        // push cells: TripCode, Route, StartDate, TotalCost, EstCost, AmountUsed, AmountLeft, EstProfit, Pending
         cells.forEach(text => {
           const td = document.createElement("td");
           td.textContent = text;
@@ -1398,7 +2032,7 @@
         if (status === "closed") {
           actionsTd.textContent = "Closed";
           actionsTd.style.fontSize = "0.8rem";
-          actionsTd.style.color = "#6b7280";
+          actionsTd.style.color = "#9ca3af";
         } else {
           const updateBtn = document.createElement("button");
           updateBtn.className = "btn-ghost btn-small";
@@ -1421,6 +2055,11 @@
         }
         row.appendChild(actionsTd);
 
+        // Click row to load into form for editing
+        row.addEventListener("click", () => {
+          loadTripIntoForm(trip.tripCode);
+        });
+
         tripsTableBody.appendChild(row);
       });
     }
@@ -1436,14 +2075,16 @@
       trips[idx].status = "closed";
       trips[idx].syncStatus = "pending";
       saveTrips(trips);
-      await saveTrip(trips[idx]); // saveTrip will attempt to sync (silently on network errors)
+      await saveTrip(trips[idx]);
       renderActiveTrips();
       renderTripsTable();
+      renderVehicleSummary();
       showToast("Trip closed.", "info");
     }
 
-    // ---------- Navigation / UI helpers (unchanged) ----------
+    // ---------- Navigation / UI helpers ----------
     function showHome() {
+      if (!guardLeaveForm()) return;
       modeScreen.classList.remove("hidden");
       mainLayout.classList.add("hidden");
       tripsListCard.classList.add("hidden");
@@ -1452,7 +2093,29 @@
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
+    function showHistory() {
+      if (!guardLeaveForm()) return;
+      modeScreen.classList.add("hidden");
+      mainLayout.classList.add("hidden");
+      updateCard.classList.add("hidden");
+      tripsListCard.classList.remove("hidden");
+      headerViewHistoryBtn.classList.add("hidden");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function showNewTrip() {
+      if (!guardLeaveForm()) return;
+      modeScreen.classList.add("hidden");
+      mainLayout.classList.remove("hidden");
+      tripsListCard.classList.add("hidden");
+      updateCard.classList.add("hidden");
+      headerViewHistoryBtn.classList.remove("hidden");
+      prefillNewTripForm();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
     function openUpdatePage(tripCode) {
+      if (!guardLeaveForm()) return;
       const trips = getStoredTrips();
       const trip = trips.find(t => t.tripCode === tripCode);
       if (!trip) {
@@ -1479,6 +2142,60 @@
 
     function updateTrip(tripCode) {
       openUpdatePage(tripCode);
+    }
+
+    // ---------- Load trip into form for editing ----------
+    function loadTripIntoForm(tripCode) {
+      const trips = getStoredTrips();
+      const trip = trips.find(t => t.tripCode === tripCode);
+      if (!trip) {
+        showToast("Trip not found.", "error");
+        return;
+      }
+      modeScreen.classList.add("hidden");
+      mainLayout.classList.remove("hidden");
+      tripsListCard.classList.add("hidden");
+      updateCard.classList.add("hidden");
+      headerViewHistoryBtn.classList.remove("hidden");
+
+      routeFromInput.value = trip.routeFrom || "";
+      routeToInput.value = trip.routeTo || "";
+      startDateInput.value = trip.startDate || todayISO();
+      vehicleInput.value = trip.vehicle || "";
+      tripCodeInput.value = trip.tripCode || "";
+      totalCostInput.value = trip.totalTransportCost || "";
+      estimatedCostInput.value = trip.estimatedTripCost || "";
+      document.getElementById("advancePaid").value = trip.advancePaid || "";
+      advancePaidDateInput.value = trip.advancePaidDate || "";
+
+      // move to step2
+      step1.classList.remove("active");
+      step2.classList.add("active");
+      stepPill.textContent = "Step 2 of 2";
+      stepIndicator.textContent = "Cost details";
+
+      // Update summary preview
+      const routeText = (trip.routeFrom || "") + " → " + (trip.routeTo || "");
+      document.getElementById("tripCodeDisplay").textContent = trip.tripCode || "—";
+      document.getElementById("vehicleDisplay").textContent = trip.vehicle || "—";
+      document.getElementById("routeDisplay").textContent = routeText || "—";
+      document.getElementById("startDateDisplay").textContent = trip.startDate || "—";
+      document.getElementById("totalCostDisplay").textContent = formatCurrency(trip.totalTransportCost || 0);
+      document.getElementById("estimatedCostDisplay").textContent = formatCurrency(trip.estimatedTripCost || 0);
+      document.getElementById("profitDisplay").textContent = formatCurrency(trip.estimatedProfit || 0);
+      document.getElementById("advanceDisplay").textContent = formatCurrency(trip.advancePaid || 0);
+      document.getElementById("pendingDisplay").textContent = formatCurrency(trip.pendingFromClient || 0);
+      document.getElementById("advanceDateDisplay").textContent =
+        trip.advancePaidDate ? trip.advancePaidDate : "—";
+
+      summaryStatusEl.textContent = "Saved";
+      summaryTitleEl.textContent =
+        (trip.tripCode ? trip.tripCode + " • " : "") +
+        routeText +
+        (trip.startDate ? " • " + trip.startDate : "");
+
+      clearFormDirty();
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
     // ---------- Render txn UI (includes payments) ----------
@@ -1557,7 +2274,7 @@
         txnsGrid.appendChild(block);
       });
 
-      // payments block (optional)
+      // payments block
       const paymentsBlock = document.createElement("div");
       paymentsBlock.className = "category-block";
       paymentsBlock.innerHTML = `<div class="category-head"><div><strong>Payments received</strong></div><div class="category-total">${formatCurrency(calculatePaymentsSum(trip))}</div></div>`;
@@ -1626,15 +2343,12 @@
       const trip = trips[idx];
       ensureTripTransactions(trip);
       const entry = { id: uid("txn_"), amount: Number(amount), date: date || todayISO() };
-      trip.transactions[cat.key ? cat.key : catKey].push(entry);
+      trip.transactions[catKey].push(entry);
       updateDerivedCategoryTotals(trip);
       trip.lastUpdated = new Date().toISOString();
-      await saveTrip(trip); // saves and syncs
+      await saveTrip(trip);
       renderTxnsForTrip(trip);
       updatePendingDisplay.textContent = formatCurrency(trip.pendingFromClient || trip.pending || 0);
-      if (trip.tripCode === document.getElementById("tripCode").value) {
-        document.getElementById("totalCostDisplay").textContent = formatCurrency(trip.totalTransportCost || 0);
-      }
       showToast(`${formatCurrency(amount)} added to ${catKey}.`, "success");
     }
 
@@ -1671,124 +2385,52 @@
       trip.pendingFromClient = (toNumber(trip.totalTransportCost || 0)) - (toNumber(trip.advancePaid || 0) + calculatePaymentsSum(trip));
       await saveTrip(trip);
       renderTxnsForTrip(trip);
+      renderTripsTable();
+      renderActiveTrips();
+      renderVehicleSummary();
       showToast(`${formatCurrency(amount)} recorded as payment.`, "success");
     }
 
-    // ---------- Safe fetch + merge (silent on network) ----------
-    async function fetchTripsFromServer() {
-      if (!API_BASE) {
-        return;
-      }
-      try {
-        const res = await fetch(API_BASE + "/trips");
-        if (!res.ok) {
-          console.warn("fetchTripsFromServer: status", res.status);
-          return;
-        }
-        const serverTrips = await res.json();
-        if (!Array.isArray(serverTrips)) {
-          console.warn("Unexpected server response for /trips", serverTrips);
-          return;
-        }
-        const local = getStoredTrips();
-        const map = new Map(local.map(t => [t.tripCode, t]));
-        serverTrips.forEach(st => { if (!st.tripCode) return; st.syncStatus = "ok"; map.set(st.tripCode, st); });
-        const merged = Array.from(map.values());
-        saveTrips(merged);
-        showToast("Fetched trips from server.", "success");
-        renderTripsTable();
-        renderActiveTrips();
-      } catch (err) {
-        console.warn("Silent fetch error:", err);
-      }
+    // ---------- Prefill new trip form (date today + last route) ----------
+    function prefillNewTripForm() {
+      tripForm.reset();
+      tripCodeInput.value = "";
+      step2.classList.remove("active");
+      step1.classList.add("active");
+      stepPill.textContent = "Step 1 of 2";
+      stepIndicator.textContent = "Route details";
+      advanceDateGroup.style.display = "none";
+      resetSummary();
+
+      // default today
+      startDateInput.value = todayISO();
+
+      // remember last route & vehicle
+      const lastFrom = localStorage.getItem("lastRouteFrom") || "";
+      const lastTo = localStorage.getItem("lastRouteTo") || "";
+      const lastVehicle = localStorage.getItem("lastVehicle") || "";
+
+      if (lastFrom) routeFromInput.value = lastFrom;
+      if (lastTo) routeToInput.value = lastTo;
+      if (lastVehicle) vehicleInput.value = lastVehicle;
+
+      clearFormDirty();
     }
 
-    // ---------- CSV export / import (includes transactions & payments) ----------
-    function csvEscape(v) {
-      if (v === null || v === undefined) return "";
-      const s = String(v);
-      if (s.includes(",") || s.includes('"') || s.includes("\n")) {
-        return '"' + s.replaceAll('"', '""') + '"';
-      }
-      return s;
-    }
-
-    function exportCsv() {
-      const trips = getStoredTrips();
-      if (!trips.length) { showToast("No trips to export.", "info"); return; }
-      const headers = ["tripCode","startDate","routeFrom","routeTo","totalTransportCost","estimatedTripCost","estimatedProfit","advancePaid","advancePaidDate","pendingFromClient","amountUsed","amountLeft","status","lastUpdated","transactions_json","payments_json"];
-      const rows = trips.map(t => {
-        const txnsJson = JSON.stringify(t.transactions || {});
-        const paysJson = JSON.stringify(t.payments || []);
-        const amountUsed = calculateAmountUsed(t);
-        const amountLeft = calculateAmountLeft(t);
-        return headers.map(h => csvEscape(h === "transactions_json" ? txnsJson : (h === "payments_json" ? paysJson : (h === "amountUsed" ? amountUsed : (h === "amountLeft" ? amountLeft : t[h]))))).join(",");
-      });
-      const csv = [headers.join(","), ...rows].join("\n");
-      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `trips_export_${todayISO()}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-      showToast("Exported CSV.", "success");
-    }
-
-    function parseCsvLine(line) {
-      const res = [];
-      let cur = "";
-      let inQuotes = false;
-      for (let i=0;i<line.length;i++){
-        const ch = line[i];
-        if (inQuotes) {
-          if (ch === '"') {
-            if (line[i+1] === '"') { cur += '"'; i++; } else inQuotes = false;
-          } else cur += ch;
-        } else {
-          if (ch === ',') { res.push(cur); cur = ""; } else if (ch === '"') { inQuotes = true; } else cur += ch;
-        }
-      }
-      res.push(cur);
-      return res;
-    }
-
-    function importCsv(text) {
-      const lines = text.split(/\r?\n/).filter(Boolean);
-      if (!lines.length) { showToast("CSV empty.", "error"); return; }
-      const header = parseCsvLine(lines[0]);
-      const rows = lines.slice(1).map(l => parseCsvLine(l));
-      const items = rows.map(r => {
-        const obj = {};
-        for (let i=0;i<header.length;i++){ const key = header[i]; obj[key] = r[i] ?? ""; }
-        obj.totalTransportCost = toNumber(obj.totalTransportCost);
-        obj.estimatedTripCost = toNumber(obj.estimatedTripCost);
-        obj.estimatedProfit = toNumber(obj.estimatedProfit);
-        obj.advancePaid = toNumber(obj.advancePaid);
-        obj.pendingFromClient = toNumber(obj.pendingFromClient);
-        obj.lastUpdated = obj.lastUpdated || new Date().toISOString();
-        try { obj.transactions = obj.transactions_json ? JSON.parse(obj.transactions_json) : {}; } catch { obj.transactions = {}; }
-        try { obj.payments = obj.payments_json ? JSON.parse(obj.payments_json) : []; } catch { obj.payments = []; }
-        if (!obj.tripCode) obj.tripCode = generateTripCode(obj.startDate || todayISO());
-        return obj;
-      });
-      const local = getStoredTrips();
-      const map = new Map(local.map(t => [t.tripCode, t]));
-      items.forEach(it => map.set(it.tripCode, it));
-      const merged = Array.from(map.values());
-      saveTrips(merged);
-      renderTripsTable();
-      renderActiveTrips();
-      showToast("Imported CSV and merged trips.", "success");
-    }
-
+    // ---------- Hook CSV buttons ----------
     exportCsvBtn.addEventListener("click", exportCsv);
     importCsvInput.addEventListener("change", async (e) => {
       const file = e.target.files && e.target.files[0];
       if (!file) return;
-      try { const text = await file.text(); importCsv(text); } catch (err) { console.error(err); showToast("Failed to read CSV file.", "error"); } finally { importCsvInput.value = ""; }
+      try {
+        const text = await file.text();
+        importCsv(text);
+      } catch (err) {
+        console.error(err);
+        showToast("Failed to read CSV file.", "error");
+      } finally {
+        importCsvInput.value = "";
+      }
     });
 
     // ---------- Init ----------
@@ -1796,57 +2438,72 @@
       await fetchTripsFromServer(); // silent on failure
       const existing = getStoredTrips();
       existing.forEach(t => { if (t.tripCode) usedTripCodes.add(t.tripCode); });
+
+      // default history date range: this month
+      const today = todayISO();
+      historyToDate.value = today;
+      const d = new Date();
+      d.setDate(1);
+      historyFromDate.value = d.toISOString().slice(0,10);
+
       renderTripsTable();
       renderActiveTrips();
+      renderVehicleSummary();
     })();
 
     // ---------- Misc UI handlers ----------
     updateBackBtn.addEventListener("click", () => showHome());
-    updateDoneBtn.addEventListener("click", () => { renderTripsTable(); renderActiveTrips(); showHome(); showToast("Done updating transactions.", "success"); });
-
-    modeNewTripBtn.addEventListener("click", () => {
-      modeScreen.classList.add("hidden");
-      mainLayout.classList.remove("hidden");
-      tripsListCard.classList.add("hidden");
-      updateCard.classList.add("hidden");
-      headerViewHistoryBtn.classList.remove("hidden");
-      window.scrollTo({ top: 0, behavior: "smooth" });
+    updateDoneBtn.addEventListener("click", () => {
+      renderTripsTable();
+      renderActiveTrips();
+      renderVehicleSummary();
+      showHome();
+      showToast("Done updating transactions.", "success");
     });
 
-    modeViewHistoryBtn.addEventListener("click", () => {
-      modeScreen.classList.add("hidden");
-      mainLayout.classList.add("hidden");
-      updateCard.classList.add("hidden");
-      tripsListCard.classList.remove("hidden");
-      headerViewHistoryBtn.classList.add("hidden");
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    });
+    modeNewTripBtn.addEventListener("click", showNewTrip);
+    modeViewHistoryBtn.addEventListener("click", showHistory);
 
     headerHomeBtn.addEventListener("click", showHome);
-    historyNewTripBtn.addEventListener("click", () => {
-      modeScreen.classList.add("hidden");
-      mainLayout.classList.remove("hidden");
-      tripsListCard.classList.add("hidden");
-      updateCard.classList.add("hidden");
-      headerViewHistoryBtn.classList.remove("hidden");
-      document.getElementById("tripForm").reset();
-      tripCodeInput.value = "";
-      step2.classList.remove("active"); step1.classList.add("active");
-      stepPill.textContent = "Step 1 of 2"; stepIndicator.textContent = "Route details";
-      advanceDateGroup.style.display = "none";
-      resetSummary();
-    });
+    headerViewHistoryBtn.addEventListener("click", showHistory);
+
+    historyNewTripBtn.addEventListener("click", showNewTrip);
 
     historySearch.addEventListener("input", renderTripsTable);
+    if (vehicleFilter) {
+      vehicleFilter.addEventListener("change", renderTripsTable);
+    }
+    historyFromDate.addEventListener("change", renderTripsTable);
+    historyToDate.addEventListener("change", renderTripsTable);
+
+    // Active vehicle filter pills
+    if (activeVehicleFilters) {
+      activeVehicleFilters.addEventListener("click", (e) => {
+        const btn = e.target.closest(".filter-pill");
+        if (!btn) return;
+        const val = btn.getAttribute("data-vehicle") || "";
+        activeVehicleFilterValue = val;
+        Array.from(activeVehicleFilters.querySelectorAll(".filter-pill")).forEach(b => {
+          b.classList.toggle("active", b === btn);
+        });
+        renderActiveTrips();
+      });
+    }
+
+    // Track form changes for unsaved warning
+    tripForm.addEventListener("input", () => {
+      markFormDirty();
+    });
 
     // NEXT (Step 1 -> Step 2)
     nextStepBtn.addEventListener("click", () => {
-      const routeFrom = document.getElementById("routeFrom").value.trim();
-      const routeTo = document.getElementById("routeTo").value.trim();
-      const startDate = document.getElementById("startDate").value;
+      const routeFrom = routeFromInput.value.trim();
+      const routeTo = routeToInput.value.trim();
+      const startDate = startDateInput.value;
+      const vehicle = vehicleInput.value;
 
-      if (!routeFrom || !routeTo || !startDate) {
-        showToast("Please fill From, To and Start date to continue.", "error");
+      if (!routeFrom || !routeTo || !startDate || !vehicle) {
+        showToast("Please fill From, To, Start date and Vehicle to continue.", "error");
         return;
       }
 
@@ -1857,9 +2514,10 @@
       }
 
       const routeText = routeFrom + " → " + routeTo;
+      document.getElementById("vehicleDisplay").textContent = vehicle || "—";
       document.getElementById("routeDisplay").textContent = routeText;
       document.getElementById("startDateDisplay").textContent = startDate || "—";
-      document.getElementById("summaryTitle").textContent =
+      summaryTitleEl.textContent =
         routeText + " • " + (startDate || "");
 
       step1.classList.remove("active");
@@ -1878,13 +2536,7 @@
 
     // RESET
     resetBtn.addEventListener("click", () => {
-      tripCodeInput.value = "";
-      step2.classList.remove("active");
-      step1.classList.add("active");
-      stepPill.textContent = "Step 1 of 2";
-      stepIndicator.textContent = "Route details";
-      advanceDateGroup.style.display = "none";
-      resetSummary();
+      prefillNewTripForm();
     });
 
     // Show/hide advance date
@@ -1894,21 +2546,13 @@
         advanceDateGroup.style.display = "block";
       } else {
         advanceDateGroup.style.display = "none";
-        document.getElementById("advancePaidDate").value = "";
+        advancePaidDateInput.value = "";
       }
     });
 
     // New Trip button in summary
     newTripBtn.addEventListener("click", () => {
-      document.getElementById("tripForm").reset();
-      tripCodeInput.value = "";
-      step2.classList.remove("active");
-      step1.classList.add("active");
-      stepPill.textContent = "Step 1 of 2";
-      stepIndicator.textContent = "Route details";
-      advanceDateGroup.style.display = "none";
-      resetSummary();
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      showNewTrip();
     });
 
     // Edit button in summary
@@ -1927,7 +2571,7 @@
 
     // Save button in summary
     summarySaveBtn.addEventListener("click", () => {
-      document.getElementById("tripForm").requestSubmit();
+      tripForm.requestSubmit();
     });
 
     // View saved record button
@@ -1938,17 +2582,23 @@
     });
 
     // SUBMIT main Trip form
-    document.getElementById("tripForm").addEventListener("submit", async (e) => {
+    tripForm.addEventListener("submit", async (e) => {
       e.preventDefault();
 
-      const routeFrom = document.getElementById("routeFrom").value.trim();
-      const routeTo = document.getElementById("routeTo").value.trim();
-      const startDate = document.getElementById("startDate").value;
-      const totalCost = toNumber(document.getElementById("totalCost").value);
-      const estimatedCost = toNumber(document.getElementById("estimatedCost").value);
-      const advancePaid = toNumber(document.getElementById("advancePaid").value);
-      const advancePaidDate = document.getElementById("advancePaidDate").value;
+      const routeFrom = routeFromInput.value.trim();
+      const routeTo = routeToInput.value.trim();
+      const startDate = startDateInput.value;
+      const vehicle = vehicleInput.value;
+      const totalCost = toNumber(totalCostInput.value);
+      const estimatedCost = toNumber(estimatedCostInput.value);
+      const advancePaid = toNumber(advancePaidInput.value);
+      const advancePaidDate = advancePaidDateInput.value;
       let tripCode = tripCodeInput.value;
+
+      if (!vehicle) {
+        showToast("Please select a vehicle.", "error");
+        return;
+      }
 
       if (!tripCode) {
         tripCode = generateTripCode(startDate);
@@ -1961,6 +2611,7 @@
       const routeText = routeFrom + " → " + routeTo;
 
       document.getElementById("tripCodeDisplay").textContent = tripCode || "—";
+      document.getElementById("vehicleDisplay").textContent = vehicle || "—";
       document.getElementById("routeDisplay").textContent = routeText || "—";
       document.getElementById("startDateDisplay").textContent = startDate || "—";
       document.getElementById("totalCostDisplay").textContent = formatCurrency(totalCost);
@@ -1971,7 +2622,7 @@
       document.getElementById("advanceDateDisplay").textContent =
         advancePaid > 0 && advancePaidDate ? advancePaidDate : "—";
 
-      document.getElementById("summaryStatus").textContent = "Saved";
+      summaryStatusEl.textContent = "Saved";
 
       const profitDisplay = document.getElementById("profitDisplay");
       const profitBadgeText = document.getElementById("profitBadgeText");
@@ -1996,7 +2647,7 @@
         pendingBadgeText.textContent = "Fully paid";
       }
 
-      document.getElementById("summaryTitle").textContent =
+      summaryTitleEl.textContent =
         (tripCode ? tripCode + " • " : "") +
         routeText +
         (startDate ? " • " + startDate : "");
@@ -2010,6 +2661,7 @@
         routeFrom,
         routeTo,
         startDate,
+        vehicle,
         totalTransportCost: totalCost,
         estimatedTripCost: estimatedCost,
         estimatedProfit: profit,
@@ -2023,10 +2675,16 @@
       if (existing && existing.transactions) payload.transactions = existing.transactions;
       if (existing && existing.payments) payload.payments = existing.payments;
 
+      // remember last route & vehicle
+      localStorage.setItem("lastRouteFrom", routeFrom);
+      localStorage.setItem("lastRouteTo", routeTo);
+      localStorage.setItem("lastVehicle", vehicle);
+
       await saveTrip(payload);
 
       renderTripsTable();
       renderActiveTrips();
+      renderVehicleSummary();
 
       formCard.classList.add("hidden");
       summaryCard.classList.remove("summary-small");
@@ -2034,6 +2692,8 @@
       summaryContent.classList.add("hidden");
       savedMessage.classList.remove("hidden");
       newTripBtn.classList.add("hidden");
+
+      clearFormDirty();
     });
 
     // ensure date default is today when adding new txns — handled when rendering inputs
