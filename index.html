@@ -1580,24 +1580,7 @@
         payload.syncStatus = "local";
         const trips = getStoredTrips().map(t => t.tripCode === payload.tripCode ? payload : t);
         saveTrips(trips);
-        // Also attempt Supabase upsert if configured (helps cross-device sync)
-        try {
-          if (typeof supabaseClient !== 'undefined' && supabaseClient) {
-            const normalized = normalizeTripForDB(payload);
-            supabaseClient.from('trips').upsert(normalized, { onConflict: ['tripCode'] }).then(res => {
-              if (res && res.error) {
-                console.warn('supabase upsert error', res.error);
-              } else {
-                payload.syncStatus = 'ok';
-                const final = getStoredTrips().map(t => t.tripCode === payload.tripCode ? payload : t);
-                saveTrips(final);
-                showToast('Saved & synced to server (supabase).', 'success');
-              }
-            }).catch(err => { console.warn('supabase upsert failed', err); });
-          }
-        } catch(e) { console.warn('supabase upsert exception', e); }
         return;
-rn;
       }
 
       try {
