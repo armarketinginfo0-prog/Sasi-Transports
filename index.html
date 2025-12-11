@@ -3774,6 +3774,46 @@ if (SUPABASE_URL && SUPABASE_ANON_KEY) {
   }, 1500);
 }
 
+
+// ---------- Compatibility wiring for duplicate IDs (mobile/desktop duplicates) ----------
+(function wireDuplicateIds(){
+  function onAll(selector, evt, handler) {
+    try {
+      document.querySelectorAll(selector).forEach(el => {
+        if (!el.__wired) {
+          el.addEventListener(evt, handler);
+          el.__wired = true;
+        }
+      });
+    } catch(e){ console.warn("wire error", e); }
+  }
+  // Wire sidebar / nav buttons to existing handlers
+  onAll("#navHomeBtn", "click", showHome);
+  onAll("#navHistoryBtn", "click", showHistory);
+  onAll("#navNewTripBtn", "click", showNewTrip);
+  // mobile bottom nav (if present)
+  onAll("#mbHome", "click", showHome);
+  onAll("#mbHistory", "click", showHistory);
+  onAll("#mbNew", "click", showNewTrip);
+  // auto-backup toggle (if duplicated)
+  onAll("#autoBackupToggle", "click", function(e){
+    // find original handler if defined; otherwise toggle simple state
+    try {
+      const handler = e.currentTarget.__originalHandler;
+      if (handler) return handler(e);
+    } catch {}
+    // fallback behaviour: toggle text
+    const cur = e.currentTarget;
+    if (cur.textContent && cur.textContent.includes("Off")) {
+      cur.textContent = cur.textContent.replace("Off","On");
+      showToast("Auto-backup enabled (local).", "info");
+    } else {
+      cur.textContent = cur.textContent.replace("On","Off");
+      showToast("Auto-backup disabled (local).", "info");
+    }
+  });
+})();
+
 </script>
 </body>
 </html>
