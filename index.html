@@ -1,3 +1,4 @@
+<!-- PART 1: Up to and including the marker "// ---------- Safe fetch + merge (silent on network) ----------" -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -32,6 +33,7 @@
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
+    /* Base layout */
     body {
       background:
         radial-gradient(circle at top, rgba(56, 189, 248, 0.18), transparent 55%),
@@ -61,6 +63,29 @@
         transform: translateY(0);
       }
     }
+
+    /* SIDEBAR (scaffold, collapsible) */
+    .app-shell {
+      display: flex;
+      gap: 16px;
+    }
+    .sidebar {
+      width: 72px; /* collapsed by default; part 2 will wire toggle */
+      min-width: 72px;
+      background: linear-gradient(180deg,#071026,#030512);
+      border-radius: 12px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: center;
+      border: 1px solid rgba(148,163,184,0.06);
+      transition: width 0.18s ease;
+    }
+    .sidebar.expanded { width: 220px; min-width: 220px; padding: 14px; }
+    .sidebar .logo { font-weight: 700; letter-spacing: 0.02em; font-size: 0.95rem; color: var(--text-main); margin-bottom: 4px; }
+    .sidebar .nav-btn { width: 100%; display:flex; align-items:center; gap:10px; border-radius: 10px; padding: 8px 10px; cursor:pointer; color: var(--text-main); background: transparent; border: none; text-align:left; }
+    .sidebar .nav-btn:hover { background: rgba(37,99,235,0.08); transform: translateY(-2px); }
 
     /* NAV BAR */
     header {
@@ -838,7 +863,7 @@
       font-size: 0.7rem;
     }
 
-    /* Update page (transactions) */
+    /* Update page (incremental) */
     .update-layout {
       max-width: 900px;
       margin: 0 auto;
@@ -872,7 +897,7 @@
 
     .update-footer { margin-top:10px; display:flex; gap:8px; justify-content:flex-end; }
 
-    /* Toast */
+    /* Toast (upgraded) */
     #toast-container {
       position: fixed;
       right: 16px;
@@ -881,6 +906,7 @@
       display: flex;
       flex-direction: column;
       gap: 8px;
+      pointer-events: none;
     }
     .toast {
       background: rgba(15, 23, 42, 0.98);
@@ -891,10 +917,22 @@
       min-width: 220px;
       font-size: 0.95rem;
       border: 1px solid rgba(55, 65, 81, 0.9);
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      pointer-events: auto;
+      transform: translateY(10px);
+      opacity: 0;
+      animation: toastIn 0.28s forwards;
     }
-    .toast.success { background: linear-gradient(90deg,#047857,#22c55e); }
-    .toast.error { background: linear-gradient(90deg,#b91c1c,#f97373); }
-    .toast.info { background: linear-gradient(90deg,#0f172a,#1f2937); }
+    @keyframes toastIn {
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .toast .toast-icon { width: 22px; height: 22px; display:inline-flex; align-items:center; justify-content:center; font-size:14px; }
+    .toast .toast-close { margin-left:auto; background:transparent; border:none; color:inherit; cursor:pointer; font-weight:700; font-size:14px; padding:4px; border-radius:6px; }
+    .toast.success { background: linear-gradient(90deg,#047857,#22c55e); color: #04210a; }
+    .toast.error { background: linear-gradient(90deg,#b91c1c,#f97373); color: #330505; }
+    .toast.info { background: linear-gradient(90deg,#0f172a,#1f2937); color: #e5e7eb; }
 
     /* small file input style */
     .file-input {
@@ -903,6 +941,40 @@
       gap:6px;
     }
     .file-input input[type=file] { display:none; }
+
+    /* Responsive tweaks */
+    @media (max-width: 900px) {
+      .vehicle-summary-grid { grid-template-columns: 1fr; }
+      .trips-table { min-width: 700px; }
+      .txns-grid { grid-template-columns: 1fr; }
+
+      /* mobile improvements foundations */
+      header { padding: 10px; border-radius: 12px; }
+      .btn-large { padding: 12px 16px; font-size: 0.95rem; }
+      .sidebar { display: none; } /* sidebar hidden on small screens; part 2 will add mobile toggle */
+    }
+
+    /* Sticky bottom nav scaffold for mobile */
+    .mobile-bottom-nav {
+      display: none;
+    }
+    @media (max-width: 600px) {
+      .mobile-bottom-nav {
+        display: flex;
+        position: fixed;
+        bottom: 8px;
+        left: 8px;
+        right: 8px;
+        justify-content: space-around;
+        gap: 8px;
+        padding: 8px;
+        border-radius: 12px;
+        background: rgba(2,6,23,0.95);
+        border: 1px solid rgba(148,163,184,0.06);
+        z-index: 60;
+      }
+      .mobile-bottom-nav button { flex: 1; padding: 10px; border-radius: 10px; font-weight:600; }
+    }
 
   </style>
 </head>
@@ -1306,6 +1378,8 @@
 
   <!-- Toast container -->
   <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
+<!-- Supabase JS (UMD build) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.min.js"></script>
 
   <script>
     /* ---------- Utilities ---------- */
@@ -1334,22 +1408,60 @@
       "TN 09 CZ 3667"
     ];
 
-    // ---------- API SETTINGS ----------
+    // ---------- API / Sync SETTINGS (placeholders) ----------
     // By default same origin. Set to your API base if different.
     const API_BASE = window.location.origin; // change if needed (e.g. "https://api.yoursite.com")
+    const SYNC_PLACEHOLDER = {
+      supabaseUrl: "", // fill when available
+      supabaseKey: ""  // fill when available
+    };
 
-    // ---------- Toast UI (replaces alert) ----------
+    // ---------- Toast UI (upgraded) ----------
     const toastContainer = document.getElementById("toast-container");
-    function showToast(msg, type = "info", timeout = 3500) {
+    function _createToastElement(msg, type = "info", timeout = 3500) {
       const d = document.createElement("div");
       d.className = "toast " + (type || "info");
-      d.textContent = msg;
-      toastContainer.appendChild(d);
+
+      // icon
+      const icon = document.createElement("div");
+      icon.className = "toast-icon";
+      icon.innerHTML = (type === "success") ? "✔" : (type === "error") ? "✖" : "ℹ";
+      d.appendChild(icon);
+
+      const body = document.createElement("div");
+      body.style.flex = "1";
+      body.textContent = msg;
+      d.appendChild(body);
+
+      const close = document.createElement("button");
+      close.className = "toast-close";
+      close.innerHTML = "×";
+      close.addEventListener("click", () => {
+        d.style.transition = "opacity 0.18s";
+        d.style.opacity = "0";
+        setTimeout(() => d.remove(), 180);
+      });
+      d.appendChild(close);
+
+      // auto remove
       setTimeout(() => {
         d.style.transition = "opacity 0.25s";
         d.style.opacity = "0";
         setTimeout(() => d.remove(), 250);
       }, timeout);
+
+      return d;
+    }
+
+    function showToast(msg, type = "info", timeout = 3500) {
+      try {
+        const el = _createToastElement(msg, type, timeout);
+        toastContainer.appendChild(el);
+      } catch (e) {
+        // fallback to alert if anything goes wrong
+        console.warn("toast failed, fallback to alert", e);
+        alert(msg);
+      }
     }
 
     // ---------- Storage helpers ----------
@@ -1385,6 +1497,13 @@
       if (!trip.transactions || typeof trip.transactions !== "object") trip.transactions = {};
       CATEGORIES.forEach(c => { if (!Array.isArray(trip.transactions[c.key])) trip.transactions[c.key] = []; });
       if (!Array.isArray(trip.payments)) trip.payments = [];
+      // ensure new vehicle-health fields present
+      if (!trip.vehicleHealth) trip.vehicleHealth = {};
+      const vh = trip.vehicleHealth;
+      if (vh.nextServiceKm === undefined) vh.nextServiceKm = null;
+      if (vh.nextServiceDate === undefined) vh.nextServiceDate = null;
+      if (vh.lastMajorRepair === undefined) vh.lastMajorRepair = null;
+      if (vh.insuranceExpiry === undefined) vh.insuranceExpiry = null;
     }
 
     function sumCategory(trip, catKey) {
@@ -1421,6 +1540,25 @@
       trip.miscCost = sumCategory(trip, "misc");
     }
 
+    // ---------- Audit log helpers ----------
+    function getAuditLog() {
+      try {
+        const raw = localStorage.getItem("audit_log");
+        if (!raw) return [];
+        return JSON.parse(raw);
+      } catch { return []; }
+    }
+    function addAuditEntry(action, details = {}) {
+      const log = getAuditLog();
+      log.push({
+        id: uid("audit_"),
+        ts: new Date().toISOString(),
+        action,
+        details
+      });
+      try { localStorage.setItem("audit_log", JSON.stringify(log)); } catch(e) { console.warn("audit save failed", e); }
+    }
+
     // ---------- Sync helper (create/update) ----------
     // IMPORTANT: network failures are SILENCED (no failure toasts)
     async function saveTrip(payload) {
@@ -1433,6 +1571,9 @@
       } catch (err) {
         console.error("local save failed", err);
       }
+
+      // add audit entry for save
+      addAuditEntry("trip_save", { tripCode: payload.tripCode, status: payload.status || "active" });
 
       // Attempt server sync but keep network failures silent (only success shows toast)
       if (!API_BASE) {
@@ -1479,9 +1620,31 @@
         } catch (e) {}
       }
     }
+	// ---------- Supabase config (Step 2) ----------
+const SUPABASE_URL = "https://tzrwwftdlyzplzygroli.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_5AJ6s1Z246T1wV6T0sRe1A_C8aRcTU2";
+
+// create client (UMD export is `supabase`)
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// small helper to patch trip objects for DB (ensures proper types)
+function normalizeTripForDB(trip) {
+  const copy = { ...trip };
+  // convert JS dates to ISO strings where applicable
+  if (copy.startDate && typeof copy.startDate === "string") {
+    // ok
+  }
+  // ensure jsonb fields are actual objects
+  copy.transactions = copy.transactions || {};
+  copy.payments = copy.payments || [];
+  copy.vehicleHealth = copy.vehicleHealth || {};
+  copy.lastUpdated = new Date().toISOString();
+  return copy;
+}
+
 
     // ---------- Safe fetch + merge (silent on network) ----------
-    async function fetchTripsFromServer() {
+  async function fetchTripsFromServer() {
       if (!API_BASE) {
         return;
       }
@@ -1617,14 +1780,12 @@
       items.forEach(it => map.set(it.tripCode, it));
       const merged = Array.from(map.values());
       saveTrips(merged);
-      // UI render functions defined later
       renderTripsTable?.();
       renderActiveTrips?.();
       renderVehicleSummary?.();
       showToast("Imported CSV and merged trips.", "success");
     }
 
-    // ---------- Trip code ---------- (unchanged)
     // ---------- Trip code ---------- (unchanged)
     const usedTripCodes = new Set();
     function generateTripCode(startDate) {
@@ -1641,7 +1802,7 @@
       return code;
     }
 
-    // ---------- DOM refs + state ----------
+     // ---------- DOM refs + state ----------
     let currentUpdateTripCode = null;
     let activeVehicleFilterValue = "";   // for Home active trips
     let formDirty = false;               // unsaved changes
