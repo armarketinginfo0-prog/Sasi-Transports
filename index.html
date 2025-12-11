@@ -1644,6 +1644,521 @@ function normalizeTripForDB(trip) {
 
 
     // ---------- Safe fetch + merge (silent on network) ----------
+	// ---------- PART 2: Supabase sync, realtime, autosave, sidebar, mobile nav, reports, prediction ----------
+
+/*
+  NOTE:
+  - This code expects `supabaseClient` (created earlier) and the UI element IDs present in Part 1.
+  - Paste this immediately after the marker inside the same <script> that contains Part 1.
+*/
+
+/* ---------- Supabase helpers (push / pull / merge) ---------- */
+
+async function pushTripToSupabase(trip) {
+  try {
+    const normalized = normalizeTripForDB(trip);
+    // upsert by tripCode (primary key) - requires a unique constraint on tripCode in your Supabase table
+    const { data, error } = await supabaseClient
+      .from("trips")
+      .upsert(normalized, { onConflict: ["tripCode"] })
+      .select()
+      .single();
+
+    if (error) {
+      console.warn("Supabase upsert error:", error);
+      return { ok: false, error };
+    }
+    return { ok: true, data };
+  } catch (err) {
+    console.warn("pushTripToSupabase error:", err);
+    return { ok: false, error: err };
+  }
+}
+
+async function pullTripsFromSupabase() {
+  try {
+    const { data, error } = await supabaseClient
+      .from("trips")
+      .select("*")
+      .order("lastUpdated", { ascending: false });
+
+    if (error) {
+      console.warn("Supabase fetch error:", error);
+      return [];
+    }
+    return Array.isArray(data) ? data : [];
+  } catch (err) {
+    console.warn("pullTripsFromSupabase error:", err);
+    return [];
+  }
+}
+
+/* Merge strategy:
+   - Local wins for fields with more recent lastUpdated
+   - If remote is newer, use remote
+   - Keeps both transactions/payments arrays merged uniquely by id
+*/
+function mergeTripObjects(local, remote) {
+  if (!local) return remote;
+  if (!remote) return local;
+
+  const localUpdated = new Date(local.lastUpdated || 0).getTime();
+  const remoteUpdated = new Date(remote.lastUpdated || 0).getTime();
+
+  const winner = remoteUpdated > localUpdated ? remote : local;
+  const loser = remoteUpdated > localUpdated ? local : remote;
+
+  const merged = { ...winner };
+
+  // Merge transactions: keep unique ids
+  merged.transactions = merged.transactions || {};
+  loser.transactions = loser.transactions || {};
+  Object.keys({ ...merged.transactions, ...loser.transactions }).forEach(cat => {
+    const a = merged.transactions[cat] || [];
+    const b = loser.transactions[cat] || [];
+    const map = new Map();
+    a.concat(b).forEach(item => map.set(item.id || uid("x"), item));
+    merged.transactions[cat] = Array.from(map.values());
+  });
+
+  // Merge payments
+  merged.payments = merged.payments || [];
+  loser.payments = loser.payments || [];
+  const payMap = new Map();
+  merged.payments.concat(loser.payments).forEach(p => payMap.set(p.id || uid("p"), p));
+  merged.payments = Array.from(payMap.values());
+
+  // Keep computed fields from winner, but recalc derived totals
+  updateDerivedCategoryTotals(merged);
+  merged.lastUpdated = new Date().toISOString();
+
+  return merged;
+}
+
+/* Safe, silent background sync that tries Supabase first then merges */
+async function safeSyncAllLocalToSupabase() {
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    console.warn("Supabase not configured; skipping safeSyncAllLocalToSupabase.");
+    return;
+  }
+
+  // Pull remote trips
+  const remoteTrips = await pullTripsFromSupabase().catch(() => []);
+  const localTrips = getStoredTrips();
+
+  // Build maps
+  const remoteMap = new Map(remoteTrips.map(r => [r.tripCode, r]));
+  const localMap = new Map(localTrips.map(l => [l.tripCode, l]));
+
+  // Merge keys
+  const allKeys = new Set([...remoteMap.keys(), ...localMap.keys()]);
+
+  for (const key of allKeys) {
+    const local = localMap.get(key);
+    const remote = remoteMap.get(key);
+
+    const merged = mergeTripObjects(local, remote);
+    // locally save merged
+    const existingLocal = localTrips.findIndex(t => t.tripCode === merged.tripCode);
+    if (existingLocal >= 0) localTrips[existingLocal] = merged;
+    else localTrips.push(merged);
+
+    // push merged to remote (so both sides converge)
+    try {
+      const res = await pushTripToSupabase(merged);
+      if (!res.ok) {
+        console.warn("Failed to push merged trip to supabase:", merged.tripCode);
+      }
+    } catch (e) {
+      console.warn("push error:", e);
+    }
+  }
+
+  saveTrips(localTrips);
+  renderTripsTable();
+  renderActiveTrips();
+  renderVehicleSummary();
+  showToast("Auto-merged local & cloud trips.", "success", 2500);
+}
+
+/* push a single trip with optimistic local save */
+async function saveTripWithSupabase(trip) {
+  // local save already handled by saveTrip; use push to supabase afterwards
+  const pushed = await pushTripToSupabase(trip);
+  if (pushed.ok && pushed.data) {
+    // merge response into local
+    const trips = getStoredTrips();
+    const idx = trips.findIndex(t => t.tripCode === trip.tripCode);
+    if (idx >= 0) {
+      const merged = mergeTripObjects(trips[idx], pushed.data);
+      trips[idx] = merged;
+      saveTrips(trips);
+      renderTripsTable();
+      renderActiveTrips();
+      renderVehicleSummary();
+    }
+    return true;
+  }
+  return false;
+}
+
+/* Patch existing saveTrip to attempt supabase push (without breaking local-first behavior)
+   We'll wrap the original saveTrip so existing calls continue to work.
+*/
+const _orig_saveTrip = saveTrip;
+saveTrip = async function(payload) {
+  // first do local save & existing logic (silent)
+  await _orig_saveTrip(payload);
+
+  // if supabase configured, attempt to push in background (silently)
+  if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+    try {
+      await saveTripWithSupabase(payload);
+      // show a small positive toast only on explicit user saves (already done by original)
+    } catch (e) {
+      console.warn("Background supabase push failed:", e);
+    }
+  }
+};
+
+/* Realtime listener: update local store when a remote change occurs */
+function setupRealtimeSubscription() {
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return;
+
+  try {
+    // subscribe to changes in "trips" table
+    supabaseClient
+      .channel("public:trips")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "trips" },
+        async (payload) => {
+          try {
+            const rec = payload.new || payload.old;
+            if (!rec || !rec.tripCode) return;
+            const local = getStoredTrips();
+            const idx = local.findIndex(t => t.tripCode === rec.tripCode);
+            if (payload.eventType === "DELETE") {
+              if (idx >= 0) {
+                local.splice(idx, 1);
+                saveTrips(local);
+                renderTripsTable();
+                renderActiveTrips();
+                renderVehicleSummary();
+                showToast(`Trip ${rec.tripCode} removed from cloud.`, "info", 1800);
+              }
+              return;
+            }
+            // On INSERT/UPDATE -> merge
+            const merged = mergeTripObjects(local[idx], rec);
+            if (idx >= 0) local[idx] = merged; else local.push(merged);
+            saveTrips(local);
+            renderTripsTable();
+            renderActiveTrips();
+            renderVehicleSummary();
+            // silent small toast (non-intrusive)
+            // showToast(`Cloud update: ${rec.tripCode}`, "info", 1400);
+          } catch (e) {
+            console.warn("Realtime payload handling error", e);
+          }
+        }
+      )
+      .subscribe();
+  } catch (e) {
+    console.warn("Realtime setup failed:", e);
+  }
+}
+
+/* ---------- Auto-backup scheduler ---------- */
+
+let autoBackupIntervalId = null;
+
+function startAutoBackup(intervalMinutes = 10) {
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return;
+  clearAutoBackup();
+  autoBackupIntervalId = setInterval(() => {
+    safeSyncAllLocalToSupabase();
+  }, Math.max(1, intervalMinutes) * 60 * 1000);
+  showToast(`Auto-backup every ${intervalMinutes} min enabled.`, "success", 1800);
+}
+
+function clearAutoBackup() {
+  if (autoBackupIntervalId) {
+    clearInterval(autoBackupIntervalId);
+    autoBackupIntervalId = null;
+  }
+}
+
+/* Attach a small hidden control for toggling auto-backup (non-intrusive) */
+(function addAutoBackupToggle() {
+  const el = document.createElement("div");
+  el.style.position = "fixed";
+  el.style.left = "12px";
+  el.style.bottom = "12px";
+  el.style.zIndex = "99998";
+  el.style.fontSize = "12px";
+  el.innerHTML = `<button id="autoBackupToggle" class="btn-ghost btn-small" title="Toggle auto-backup">Auto-backup: Off</button>`;
+  document.body.appendChild(el);
+  document.getElementById("autoBackupToggle").addEventListener("click", (e) => {
+    if (autoBackupIntervalId) {
+      clearAutoBackup();
+      e.currentTarget.textContent = "Auto-backup: Off";
+      showToast("Auto-backup disabled.", "info");
+    } else {
+      startAutoBackup(10);
+      e.currentTarget.textContent = "Auto-backup: On";
+    }
+  });
+})();
+
+/* ---------- Sidebar / Mobile nav wiring ---------- */
+(function setupSidebarToggle() {
+  // build toggle button in header
+  const btn = document.createElement("button");
+  btn.className = "btn-ghost";
+  btn.id = "sidebarToggleBtn";
+  btn.textContent = "☰";
+  const headerActions = document.querySelector(".header-actions");
+  if (headerActions) headerActions.insertBefore(btn, headerActions.firstChild);
+
+  btn.addEventListener("click", () => {
+    const sidebar = document.querySelector(".sidebar");
+    if (!sidebar) {
+      // create simple sidebar when missing (Part1 had hidden sidebar for small screens)
+      const s = document.createElement("div");
+      s.className = "sidebar expanded";
+      s.innerHTML = `<div class="logo">Sasi Transports</div>
+        <button class="nav-btn" id="navHomeBtn">🏠 Home</button>
+        <button class="nav-btn" id="navHistoryBtn">📜 History</button>
+        <button class="nav-btn" id="navNewTripBtn">➕ New Trip</button>
+        <button class="nav-btn" id="navVehiclesBtn">🚚 Vehicles</button>`;
+      document.querySelector(".page").insertBefore(s, document.querySelector(".page").firstChild);
+      wireSidebarButtons();
+      return;
+    }
+    sidebar.classList.toggle("expanded");
+  });
+
+  function wireSidebarButtons() {
+    const navHome = document.getElementById("navHomeBtn");
+    const navHistory = document.getElementById("navHistoryBtn");
+    const navNewTrip = document.getElementById("navNewTripBtn");
+    if (navHome) navHome.addEventListener("click", showHome);
+    if (navHistory) navHistory.addEventListener("click", showHistory);
+    if (navNewTrip) navNewTrip.addEventListener("click", showNewTrip);
+  }
+})();
+
+/* Mobile bottom nav wiring */
+(function setupMobileBottomNav() {
+  const nav = document.querySelector(".mobile-bottom-nav");
+  if (!nav) {
+    const el = document.createElement("div");
+    el.className = "mobile-bottom-nav";
+    el.innerHTML = `
+      <button id="mbHome" class="btn-small">Home</button>
+      <button id="mbNew" class="btn-small">New</button>
+      <button id="mbHistory" class="btn-small">History</button>
+    `;
+    document.body.appendChild(el);
+    document.getElementById("mbHome").addEventListener("click", showHome);
+    document.getElementById("mbNew").addEventListener("click", showNewTrip);
+    document.getElementById("mbHistory").addEventListener("click", showHistory);
+  }
+})();
+
+/* ---------- Predictive profit calculator (simple ML-ish heuristic) ----------
+   A small helper that suggests an adjusted price to reach target profit margin.
+   This is intentionally simple and deterministic (no external ML).
+*/
+function predictPriceForTargetProfit(trip, targetProfitPercent = 10) {
+  // targetProfitPercent: e.g. 10 for 10%
+  const estCost = toNumber(trip.estimatedTripCost || trip.estimatedTripCost);
+  if (estCost <= 0) return null;
+  // desired profit amount:
+  const targetProfit = (targetProfitPercent / 100) * estCost;
+  const suggestedPrice = estCost + targetProfit;
+  // add small buffer for uncertainty (2%)
+  return Math.ceil(suggestedPrice * 1.02);
+}
+
+/* Add a quick UI control to suggest price when editing a trip in form */
+(function injectPredictiveUI() {
+  const wrapper = document.createElement("div");
+  wrapper.style.marginTop = "8px";
+  wrapper.innerHTML = `<div style="display:flex;gap:8px;align-items:center">
+    <label class="muted" style="min-width:170px">Suggest price for target profit %</label>
+    <input type="number" id="predictTargetPct" value="10" min="0" step="1" style="width:80px;border-radius:8px;padding:6px"/>
+    <button id="runPredict" class="btn-outline btn-small">Suggest</button>
+    <div id="predictResult" style="margin-left:8px;font-weight:700"></div>
+  </div>`;
+  const formCardEl = document.getElementById("formCard");
+  if (formCardEl) formCardEl.appendChild(wrapper);
+
+  document.getElementById("runPredict").addEventListener("click", () => {
+    const pct = toNumber(document.getElementById("predictTargetPct").value) || 10;
+    const est = toNumber(estimatedCostInput.value || 0);
+    const pseudoTrip = { estimatedTripCost: est };
+    const suggestion = predictPriceForTargetProfit(pseudoTrip, pct);
+    const resultEl = document.getElementById("predictResult");
+    if (!suggestion) resultEl.textContent = "Enter estimated cost first";
+    else resultEl.textContent = `Suggest: ₹${suggestion.toLocaleString("en-IN")}`;
+  });
+})();
+
+/* ---------- Monthly / Yearly reports (CSV + aggregated summary) ---------- */
+
+function generateFinancialReport({ period = "month", year = null, month = null } = {}) {
+  const trips = getStoredTrips();
+  let filtered = trips.slice();
+  if (period === "month" && year && month) {
+    const mm = month.toString().padStart(2, "0");
+    filtered = filtered.filter(t => (t.startDate || "").slice(0,7) === `${year}-${mm}`);
+  } else if (period === "year" && year) {
+    filtered = filtered.filter(t => (t.startDate || "").slice(0,4) === String(year));
+  }
+
+  const totalBilled = filtered.reduce((s, t) => s + toNumber(t.totalTransportCost || 0), 0);
+  const totalEstCost = filtered.reduce((s, t) => s + toNumber(t.estimatedTripCost || 0), 0);
+  const totalProfit = filtered.reduce((s, t) => s + toNumber(t.estimatedProfit || 0), 0);
+  const totalPending = filtered.reduce((s, t) => s + toNumber(t.pendingFromClient || 0), 0);
+
+  return {
+    trips: filtered,
+    totalBilled,
+    totalEstCost,
+    totalProfit,
+    totalPending
+  };
+}
+
+function downloadReportCSV(reportObj, filename = "financial_report.csv") {
+  const headers = ["tripCode","startDate","routeFrom","routeTo","vehicle","totalTransportCost","estimatedTripCost","estimatedProfit","pendingFromClient","status","lastUpdated"];
+  const rows = reportObj.trips.map(t => headers.map(h => csvEscape(t[h] ?? "")).join(","));
+  const csv = [headers.join(","), ...rows].join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  showToast("Report downloaded.", "success");
+}
+
+/* Expose a small report UI in history card */
+(function addReportsUI() {
+  const wrapper = document.createElement("div");
+  wrapper.style.marginTop = "8px";
+  wrapper.style.display = "flex";
+  wrapper.style.gap = "8px";
+  wrapper.style.alignItems = "center";
+  wrapper.innerHTML = `
+    <select id="reportYear"></select>
+    <select id="reportMonth"></select>
+    <button id="runReport" class="btn-outline btn-small">Run report</button>
+    <button id="downloadReport" class="btn-ghost btn-small">Download CSV</button>
+    <div id="reportSummary" style="margin-left:10px;color:#cbd5f5;font-weight:600"></div>
+  `;
+  const tripsListCardEl = document.getElementById("tripsListCard");
+  if (tripsListCardEl) tripsListCardEl.querySelector(".card-header").appendChild(wrapper);
+
+  const yearSel = document.getElementById("reportYear");
+  const monthSel = document.getElementById("reportMonth");
+  const now = new Date();
+  for (let y = now.getFullYear(); y >= now.getFullYear() - 4; y--) {
+    const opt = document.createElement("option"); opt.value = y; opt.textContent = y; yearSel.appendChild(opt);
+  }
+  for (let m = 1; m <= 12; m++) {
+    const opt = document.createElement("option"); opt.value = m; opt.textContent = m; monthSel.appendChild(opt);
+  }
+  yearSel.value = now.getFullYear();
+  monthSel.value = now.getMonth() + 1;
+
+  let lastReport = null;
+  document.getElementById("runReport").addEventListener("click", () => {
+    const y = Number(yearSel.value);
+    const m = Number(monthSel.value);
+    lastReport = generateFinancialReport({ period: "month", year: y, month: m });
+    document.getElementById("reportSummary").textContent = `Trips: ${lastReport.trips.length} • Billed: ${formatCurrency(lastReport.totalBilled)} • Profit: ${formatCurrency(lastReport.totalProfit)}`;
+    showToast("Report generated.", "info");
+  });
+
+  document.getElementById("downloadReport").addEventListener("click", () => {
+    if (!lastReport) {
+      showToast("Run report first.", "error");
+      return;
+    }
+    const y = yearSel.value;
+    const m = monthSel.value.toString().padStart(2,"0");
+    downloadReportCSV(lastReport, `report_${y}-${m}.csv`);
+  });
+})();
+
+/* ---------- Small UX improvements ---------- */
+
+// Warn if leaving with unsaved changes (already handled by guardLeaveForm on actions) but also bind window unload
+window.addEventListener("beforeunload", (e) => {
+  if (formDirty) {
+    e.preventDefault();
+    e.returnValue = "";
+  }
+});
+
+// quick "repair" button to re-run safe merge (useful for user)
+(function addManualMergeButton() {
+  const btn = document.createElement("button");
+  btn.className = "btn-ghost btn-small";
+  btn.style.position = "fixed";
+  btn.style.right = "12px";
+  btn.style.bottom = "12px";
+  btn.style.zIndex = "99998";
+  btn.textContent = "Merge cloud";
+  document.body.appendChild(btn);
+  btn.addEventListener("click", async () => {
+    showToast("Merging local & cloud...", "info", 1400);
+    await safeSyncAllLocalToSupabase();
+  });
+})();
+
+/* ---------- Wire initial auto-sync + realtime ---------- */
+(async function startupSync() {
+  // Attempt safe merge once on startup (silent)
+  if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+    try {
+      await safeSyncAllLocalToSupabase();
+      setupRealtimeSubscription();
+    } catch (e) {
+      console.warn("startupSync failed", e);
+    }
+  } else {
+    // fallback: call existing server fetch (Part1 had API_BASE fetch)
+    try { await fetchTripsFromServer(); } catch(e){}
+  }
+})();
+
+/* ---------- Small placeholder for advanced features: GPS, Toll, AI-analysis ----------
+   These are intentionally left as stubs — they can be implemented after you enable APIs/keys.
+*/
+const AdvancedFeatures = {
+  async integrateGPS(vehicleId) {
+    // placeholder: would call your GPS provider; returns { lat, lng, ts }
+    return null;
+  },
+  async fetchTollCost(routeFrom, routeTo) {
+    // placeholder: call toll API if available
+    return 0;
+  },
+  async analyzeExpensesWithAI(trip) {
+    // placeholder: could send aggregated expense data to an AI service
+    return { suggestions: [] };
+  }
+};
+
+/* ---------- END OF PART 2 ---------- */
+
   async function fetchTripsFromServer() {
       if (!API_BASE) {
         return;
